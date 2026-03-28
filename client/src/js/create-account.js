@@ -13,7 +13,7 @@ createAccountBtn.onclick = function () {
   }
 
   if (newPassword !== confirmPassword) {
-    createErrorMessage.textContent = "Passwords do not match.";
+    createErrorMessage.textContent = "Passwords do not match please cross check  your password.";
     return;
   }
 
