@@ -206,7 +206,7 @@
     <div class="navbar">
         <div class="logo">StudentBlog</div>
         <div class="search-bar">
-            <input type="text" placeholder="Search posts globally..." id="searchInput" oninput="loadPosts()">
+            <input type="text" placeholder="Search all posts..." id="searchInput" oninput="loadPosts()">
         </div>
         <div class="nav-buttons">
             <button onclick="goHome()">Home</button>
@@ -229,7 +229,6 @@
                 </div>
                 
                 <div id="postFormInputs" style="display: none; margin-top: 20px;">
-                    <input id="authorInput" placeholder="Your name (optional)">
                     <input id="titleInput" placeholder="Post title">
                     <textarea id="contentInput" placeholder="Write your post..."></textarea>
                     <select id="communitySelect">
@@ -316,7 +315,11 @@
 
                 posts
                     .filter(post => {
-                        const matchesSearch = !searchTerm || post.title.toLowerCase().includes(searchTerm) || post.content.toLowerCase().includes(searchTerm) || post.author.toLowerCase().includes(searchTerm);
+                        const matchesSearch = !searchTerm || 
+                            post.title.toLowerCase().includes(searchTerm) || 
+                            post.content.toLowerCase().includes(searchTerm) || 
+                            (post.author && post.author.toLowerCase().includes(searchTerm)) ||
+                            (post.tags && post.tags.some(tag => tag.toLowerCase().includes(searchTerm)));
                         const matchesCommunity = !activeCommunity || (post.tags && post.tags.includes(activeCommunity));
                         
                         // If user is actively searching, show results from ANY community globally
@@ -383,7 +386,16 @@
         }
 
         async function createPost() {
-            const author = document.getElementById('authorInput').value || 'Anonymous';
+            const signedInUser = localStorage.getItem("signedInUser");
+            const profileDataRaw = localStorage.getItem("profileData");
+            let author = signedInUser || 'Anonymous';
+            if (profileDataRaw) {
+                try {
+                    const profileData = JSON.parse(profileDataRaw);
+                    if (profileData.firstName) author = profileData.firstName;
+                } catch(e) {}
+            }
+
             const title = document.getElementById('titleInput').value.trim();
             const content = document.getElementById('contentInput').value.trim();
             const community = document.getElementById('communitySelect').value;
@@ -401,7 +413,6 @@
                 body: JSON.stringify({ title, content, author, tags })
             });
 
-            document.getElementById('authorInput').value = '';
             document.getElementById('titleInput').value = '';
             document.getElementById('contentInput').value = '';
 
@@ -412,11 +423,15 @@
             loadPosts();
         }
 
-        // Auto-refresh interval
-        setInterval(loadPosts, 3000);
-        
-        // Initial load
-        loadPosts();
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const query = urlParams.get('q');
+            if (query) {
+                document.getElementById('searchInput').value = query;
+            }
+            loadPosts(); // Initial load
+            setInterval(loadPosts, 3000); // Auto-refresh interval
+        });
     </script>
 
 </body>

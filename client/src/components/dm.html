@@ -554,10 +554,10 @@
     </div>
 
     <div class="nav-buttons">
-      <button>Home</button>
-      <button>Posts</button>
-      <button>Chats</button>
-      <button>My Profile</button>
+      <button onclick="window.location.href='index.html'">Home</button>
+      <button onclick="window.location.href='blog.html'">Posts</button>
+      <button onclick="window.location.href='dm.html'">Chats</button>
+      <button onclick="window.location.href='profile.html'">My Profile</button>
     </div>
   </div>
 
@@ -1044,6 +1044,27 @@
     });
 
     document.getElementById("userSearch").addEventListener("input", renderSearchResults);
+
+    // Sync localized database with your signedIn state
+    const signedInUser = localStorage.getItem("signedInUser");
+    const profileDataRaw = localStorage.getItem("profileData");
+    let displayName = "sebber";
+
+    if (signedInUser) {
+        displayName = signedInUser;
+    }
+    
+    if (profileDataRaw) {
+        try {
+            const profileData = JSON.parse(profileDataRaw);
+            if (profileData.firstName) {
+                displayName = profileData.firstName;
+            }
+        } catch(e) {}
+    }
+
+    // Inject your real identity over the hardcoded User #1
+    users[0].username = displayName;
 
     updateCurrentAccountName();
     renderSidebarList();

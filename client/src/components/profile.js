@@ -47,5 +47,61 @@ if (settingsBtn) {
     alert("Settings page coming later.");
   };
 }
-
 loadProfile();
+
+async function loadMyPosts() {
+    const signedInUser = localStorage.getItem("signedInUser");
+    const profileDataRaw = localStorage.getItem("profileData");
+    let displayName = "Anonymous";
+
+    if (signedInUser) displayName = signedInUser;
+
+    if (profileDataRaw) {
+        try {
+            const profileData = JSON.parse(profileDataRaw);
+            if (profileData.firstName) displayName = profileData.firstName;
+        } catch(e) {}
+    }
+
+    try {
+        const res = await fetch('/posts');
+        if (!res.ok) throw new Error('Failed to load posts');
+        
+        const posts = await res.json();
+        const myPosts = posts.filter(post => post.author === displayName);
+        
+        const container = document.getElementById("myPostsList");
+        
+        if (myPosts.length > 0) {
+            container.innerHTML = ""; 
+            container.style.padding = "0";
+            container.style.border = "none";
+            container.style.background = "transparent";
+
+            myPosts.forEach(post => {
+                const div = document.createElement('div');
+                div.className = 'post';
+
+                const firstLetter = post.author ? post.author.charAt(0).toUpperCase() : '?';
+                const tagsHTML = (post.tags || []).map(tag => `<span class="tag">#${tag}</span>`).join('');
+
+                div.innerHTML = `
+                    <div class="post-header">
+                        <div class="pfp-small">${firstLetter}</div>
+                        <div>
+                            <h3 style="margin:0; font-size: 16px; margin-bottom: 2px;">${post.title}</h3>
+                            <small>By ${post.author} • ${post.time || ''}</small>
+                        </div>
+                    </div>
+                    <p style="margin: 5px 0 0 0; font-size: 14px;">${post.content}</p>
+                    <div class="tags">${tagsHTML}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+    } catch(e) {
+        console.error("Could not load history", e);
+    }
+}
+
+loadMyPosts();

@@ -5,6 +5,46 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Laurier Profile Viewer</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .post {
+        background: #fdfdfd;
+        padding: 15px;
+        margin-top: 15px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        border: 2px solid #eee;
+        color: #4B2E83;
+        font-family: Arial, sans-serif;
+    }
+    .post-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+    }
+    .pfp-small {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: #FDB913;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #4B2E83;
+        font-size: 16px;
+    }
+    .tags { margin-top: 8px; }
+    .tag {
+        display: inline-block;
+        background: #4B2E83;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 11px;
+        margin-right: 4px;
+    }
+  </style>
 </head>
 <body>
 
@@ -44,9 +84,9 @@
     </div>
 
     <div class="section">
-      <h2>Discussion Posts</h2>
-      <div class="placeholder-box">
-        Discussion posts will go here later.
+      <h2>Post History</h2>
+      <div id="myPostsList" class="placeholder-box">
+        No past posts found! Navigate to the Blog to start discussions.
       </div>
     </div>
 
