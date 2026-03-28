@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Edit Laurier Profile</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+
+  <div class="container">
+
+    <button id="backBtn" class="back-btn">← View Profile</button>
+
+    <div class="profile-header">
+      <div class="profile-pic">Upload</div>
+      <h1>Edit Student Profile</h1>
+    </div>
+
+    <div class="section">
+      <label>First Name</label>
+      <input type="text" id="firstName" />
+
+      <label>Last Name</label>
+      <input type="text" id="lastName" />
+
+      <label>Program</label>
+      <select id="program">
+        <option value="">Select Program</option>
+        <option>Computer Science</option>
+        <option>Business</option>
+        <option>Psychology</option>
+        <option>Biology</option>
+      </select>
+
+      <label>Year of Study</label>
+      <select id="year">
+        <option value="">Select Year</option>
+        <option>1st Year</option>
+        <option>2nd Year</option>
+        <option>3rd Year</option>
+        <option>4th Year</option>
+      </select>
+
+      <label>Email</label>
+      <input type="email" id="email" />
+    </div>
+
+    <div class="section">
+      <label>Interests</label>
+      <select id="interestSelect">
+        <option value="">Select Interest</option>
+        <option>Gym</option>
+        <option>Gaming</option>
+        <option>Coding</option>
+        <option>Music</option>
+        <option>Basketball</option>
+      </select>
+      <button id="addInterest">Add Interest</button>
+      <div id="interestList"></div>
+      <small class="helper-text">Click a tag to remove it.</small>
+    </div>
+
+    <div class="section">
+      <label>Courses Taken</label>
+      <select id="courseSelect">
+        <option value="">Select Course</option>
+        <option>CP104</option>
+        <option>CP164</option>
+        <option>CP213</option>
+        <option>MA103</option>
+        <option>MA122</option>
+      </select>
+      <button id="addCourse">Add Course</button>
+      <div id="courseList"></div>
+      <small class="helper-text">Click a tag to remove it.</small>
+    </div>
+
+    <button id="save">Save Profile</button>
+
+  </div>
+
+  <script src="../js/script.js"></script>
+</body>
+</html>
