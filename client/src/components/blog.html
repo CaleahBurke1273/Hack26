@@ -10,6 +10,57 @@
             background: #4B2E83;
             color: white;
             padding: 20px;
+            margin: 0;
+        }
+
+        .layout-container {
+            display: flex;
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .main-feed {
+            flex: 1;
+        }
+
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            background: white;
+            border-radius: 12px;
+            border: 4px solid #FDB913;
+            padding: 15px;
+            color: #4B2E83;
+            align-self: flex-start;
+        }
+
+        .sidebar h3 {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+            color: #888;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        .sidebar-item {
+            padding: 10px 14px;
+            margin-bottom: 6px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .sidebar-item:hover {
+            background: #f0f0f0;
+        }
+
+        .sidebar-item.active {
+            background: #4B2E83;
+            color: white;
         }
 
         .post {
@@ -56,32 +107,37 @@
         }
 
         input,
-        textarea {
+        textarea,
+        select {
             display: block;
             width: 100%;
-            max-width: 400px;
+            max-width: 100%;
             margin-bottom: 10px;
             padding: 10px;
             border: 2px solid #FDB913;
             border-radius: 8px;
             box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            color: #4B2E83;
         }
 
         textarea {
-            height: 80px;
+            height: 100px;
+            resize: vertical;
         }
 
-        button {
-            padding: 10px 16px;
+        button.post-btn {
+            padding: 12px 20px;
             background-color: #FDB913;
             color: #4B2E83;
             border: none;
             border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
+            width: 100%;
         }
 
-        button:hover {
+        button.post-btn:hover {
             background-color: #e0a800;
         }
 
@@ -93,17 +149,26 @@
             padding: 15px 20px;
             border-radius: 12px;
             border: 4px solid #FDB913;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
             color: #4B2E83;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .logo {
             font-weight: bold;
-            font-size: 20px;
+            font-size: 24px;
+        }
+
+        .search-bar {
+            display: flex;
+            flex: 1;
+            margin: 0 40px;
         }
 
         .search-bar input {
-            width: 250px;
+            width: 100%;
             margin-bottom: 0;
             padding: 10px;
         }
@@ -111,14 +176,27 @@
         .nav-buttons button {
             margin-left: 8px;
             margin-top: 0;
+            padding: 10px 16px;
+            background-color: #FDB913;
+            color: #4B2E83;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
         }
 
-        h2 {
-            margin-top: 0;
+        .nav-buttons button:hover {
+            background-color: #e0a800;
         }
 
-        hr {
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        h2 { margin-top: 0; }
+        hr { border: 1px solid rgba(255, 255, 255, 0.2); margin: 30px 0;}
+        .post-input-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 4px solid #FDB913;
+            color: #4B2E83;
         }
     </style>
 </head>
@@ -128,7 +206,7 @@
     <div class="navbar">
         <div class="logo">StudentBlog</div>
         <div class="search-bar">
-            <input type="text" placeholder="Search posts..." id="searchInput">
+            <input type="text" placeholder="Search posts globally..." id="searchInput" oninput="loadPosts()">
         </div>
         <div class="nav-buttons">
             <button onclick="goHome()">Home</button>
@@ -138,20 +216,93 @@
         </div>
     </div>
 
-    <h2>Community Blog</h2>
+    <div class="layout-container">
+        <!-- Main Feed -->
+        <div class="main-feed">
+            <h2>Community Feed</h2>
 
-    <!-- Post Inputs -->
-    <input id="authorInput" placeholder="Your name (optional)">
-    <input id="titleInput" placeholder="Post title">
-    <textarea id="contentInput" placeholder="Write your post..."></textarea>
-    <input id="tagsInput" placeholder="Tags (comma separated)">
-    <button onclick="createPost()">Post</button>
+            <!-- Post Inputs Box -->
+            <div class="post-input-container">
+                <div id="writePostHeader" onclick="togglePostForm()" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin:0; user-select: none;">Write a Post</h3>
+                    <span id="postToggleIcon" style="font-size: 18px; font-weight: bold; user-select: none;">＋</span>
+                </div>
+                
+                <div id="postFormInputs" style="display: none; margin-top: 20px;">
+                    <input id="authorInput" placeholder="Your name (optional)">
+                    <input id="titleInput" placeholder="Post title">
+                    <textarea id="contentInput" placeholder="Write your post..."></textarea>
+                    <select id="communitySelect">
+                        <option value="">Select a community to post in...</option>
+                        <optgroup label="Interests">
+                            <option value="Programming">Programming</option>
+                            <option value="Design">Design</option>
+                            <option value="Business">Business</option>
+                            <option value="Music">Music</option>
+                            <option value="Sports">Sports</option>
+                            <option value="Gaming">Gaming</option>
+                        </optgroup>
+                        <optgroup label="Courses">
+                            <option value="CP104">CP104</option>
+                            <option value="CP164">CP164</option>
+                            <option value="MA103">MA103</option>
+                            <option value="BU111">BU111</option>
+                            <option value="EC120">EC120</option>
+                        </optgroup>
+                    </select>
+                    <button class="post-btn" onclick="createPost()">Submit Post</button>
+                </div>
+            </div>
 
-    <hr>
+            <hr>
 
-    <div id="posts"></div>
+            <div id="posts"></div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-item active" onclick="setCommunity('')" id="sidebar-all">🌎 All Communities</div>
+
+            <h3>Interests</h3>
+            <div class="sidebar-item" onclick="setCommunity('Programming')" id="sidebar-Programming">Programming</div>
+            <div class="sidebar-item" onclick="setCommunity('Design')" id="sidebar-Design">Design</div>
+            <div class="sidebar-item" onclick="setCommunity('Business')" id="sidebar-Business">Business</div>
+            <div class="sidebar-item" onclick="setCommunity('Music')" id="sidebar-Music">Music</div>
+            <div class="sidebar-item" onclick="setCommunity('Sports')" id="sidebar-Sports">Sports</div>
+            <div class="sidebar-item" onclick="setCommunity('Gaming')" id="sidebar-Gaming">Gaming</div>
+
+            <h3>Courses Taken</h3>
+            <div class="sidebar-item" onclick="setCommunity('CP104')" id="sidebar-CP104">CP104</div>
+            <div class="sidebar-item" onclick="setCommunity('CP164')" id="sidebar-CP164">CP164</div>
+            <div class="sidebar-item" onclick="setCommunity('MA103')" id="sidebar-MA103">MA103</div>
+            <div class="sidebar-item" onclick="setCommunity('BU111')" id="sidebar-BU111">BU111</div>
+            <div class="sidebar-item" onclick="setCommunity('EC120')" id="sidebar-EC120">EC120</div>
+        </div>
+    </div>
 
     <script>
+        let activeCommunity = '';
+
+        function setCommunity(community) {
+            activeCommunity = community;
+
+            // Update Sidebar visually
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            if (community === '') {
+                document.getElementById('sidebar-all').classList.add('active');
+            } else {
+                document.getElementById('sidebar-' + community).classList.add('active');
+            }
+
+            // Also dynamically update the 'Select a community' dropdown to match if possible
+            const selectEl = document.getElementById('communitySelect');
+            if(community !== '') {
+                selectEl.value = community;
+            }
+
+            loadPosts();
+        }
+
         async function loadPosts() {
             try {
                 const res = await fetch('/posts');
@@ -164,7 +315,18 @@
                 const searchTerm = (document.getElementById('searchInput').value || '').toLowerCase();
 
                 posts
-                    .filter(post => !searchTerm || post.title.toLowerCase().includes(searchTerm) || post.content.toLowerCase().includes(searchTerm) || post.author.toLowerCase().includes(searchTerm))
+                    .filter(post => {
+                        const matchesSearch = !searchTerm || post.title.toLowerCase().includes(searchTerm) || post.content.toLowerCase().includes(searchTerm) || post.author.toLowerCase().includes(searchTerm);
+                        const matchesCommunity = !activeCommunity || (post.tags && post.tags.includes(activeCommunity));
+                        
+                        // If user is actively searching, show results from ANY community globally
+                        if (searchTerm) {
+                            return matchesSearch;
+                        }
+                        
+                        // Otherwise, follow the sidebar community filter
+                        return matchesCommunity;
+                    })
                     .forEach(post => {
                         const div = document.createElement('div');
                         div.className = 'post';
@@ -177,7 +339,7 @@
                     <div class="post-header">
                         <div class="pfp">${firstLetter}</div>
                         <div>
-                            <h3>${post.title}</h3>
+                            <h3 style="margin:0; margin-bottom: 3px;">${post.title}</h3>
                             <small>By ${post.author} • ${post.time || ''}</small>
                         </div>
                     </div>
@@ -208,18 +370,30 @@
             window.location.href = 'profile.html';
         }
 
+        function togglePostForm() {
+            const formInputs = document.getElementById('postFormInputs');
+            const icon = document.getElementById('postToggleIcon');
+            if (formInputs.style.display === 'none') {
+                formInputs.style.display = 'block';
+                icon.textContent = '－';
+            } else {
+                formInputs.style.display = 'none';
+                icon.textContent = '＋';
+            }
+        }
+
         async function createPost() {
             const author = document.getElementById('authorInput').value || 'Anonymous';
             const title = document.getElementById('titleInput').value.trim();
             const content = document.getElementById('contentInput').value.trim();
-            const tagsRaw = document.getElementById('tagsInput').value;
+            const community = document.getElementById('communitySelect').value;
 
-            if (!title || !content) {
-                alert('Please provide both title and content.');
+            if (!title || !content || !community) {
+                alert('Please provide a title, content, and select a community to post in.');
                 return;
             }
 
-            const tags = tagsRaw.split(',').map(t => t.trim()).filter(t => t.length > 0);
+            const tags = [community];
 
             await fetch('/posts', {
                 method: 'POST',
@@ -230,12 +404,18 @@
             document.getElementById('authorInput').value = '';
             document.getElementById('titleInput').value = '';
             document.getElementById('contentInput').value = '';
-            document.getElementById('tagsInput').value = '';
+
+            // Hide the form automatically after submission
+            document.getElementById('postFormInputs').style.display = 'none';
+            document.getElementById('postToggleIcon').textContent = '＋';
 
             loadPosts();
         }
 
+        // Auto-refresh interval
         setInterval(loadPosts, 3000);
+        
+        // Initial load
         loadPosts();
     </script>
 
