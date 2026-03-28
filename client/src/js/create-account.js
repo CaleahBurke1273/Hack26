@@ -13,7 +13,7 @@ createAccountBtn.onclick = function () {
   }
 
   if (newPassword !== confirmPassword) {
-    createErrorMessage.textContent = "Passwords do not match please cross check  your password.";
+    createErrorMessage.textContent = "Passwords do not match.";
     return;
   }
 
@@ -26,7 +26,7 @@ createAccountBtn.onclick = function () {
   localStorage.setItem("mode", "new");
   localStorage.setItem("signedInUser", newUsername);
 
-  window.location.href = "../root/index.html";
+  window.location.href = "../root/home.html";
 };
 
 backToSignInBtn.onclick = function () {
