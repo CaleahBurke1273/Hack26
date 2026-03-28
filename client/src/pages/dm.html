@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StudentBlog Messages</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #4B2E83;
+      color: white;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .topbar {
+      background: #f4f4f4;
+      border: 4px solid #FDB913;
+      border-radius: 18px;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      font-size: 22px;
+      font-weight: bold;
+      color: #4B2E83;
+    }
+
+    .top-search {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+    }
+
+    .top-search input {
+      width: 340px;
+      max-width: 100%;
+      padding: 12px 16px;
+      border: 3px solid #FDB913;
+      border-radius: 12px;
+      outline: none;
+      font-size: 15px;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .nav-buttons button,
+    .message-input button,
+    .search-results button {
+      background: #FDB913;
+      color: #4B2E83;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .nav-buttons button:hover,
+    .message-input button:hover,
+    .search-results button:hover {
+      transform: scale(1.03);
+    }
+
+    .main {
+      display: flex;
+      height: calc(100vh - 130px);
+      gap: 18px;
+    }
+
+    .sidebar {
+      width: 33%;
+      min-width: 320px;
+      background: #f4f4f4;
+      border: 4px solid #FDB913;
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 18px;
+      border-bottom: 3px solid #FDB913;
+      color: #4B2E83;
+      background: #f4f4f4;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header h2 {
+      margin-bottom: 12px;
+      font-size: 30px;
+    }
+
+    .current-account {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding: 12px;
+      background: white;
+      border: 2px solid #FDB913;
+      border-radius: 14px;
+    }
+
+    .current-account-text {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .current-account-text span:first-child {
+      font-size: 13px;
+      color: #777;
+    }
+
+    .current-account-text span:last-child {
+      font-size: 18px;
+      font-weight: bold;
+      color: #4B2E83;
+    }
+
+    .search-user-box input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #FDB913;
+      border-radius: 12px;
+      outline: none;
+      font-size: 15px;
+    }
+
+    .search-results {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .search-results button {
+      text-align: left;
+      padding: 10px 12px;
+    }
+
+    .sidebar-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .section-label {
+      color: #4B2E83;
+      font-size: 15px;
+      font-weight: bold;
+      margin: 4px 2px 6px;
+    }
+
+    .conversation-item,
+    .user-pill {
+      background: white;
+      color: #4B2E83;
+      border: 2px solid #FDB913;
+      border-radius: 16px;
+      padding: 14px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .conversation-item:hover,
+    .user-pill:hover {
+      transform: translateY(-1px);
+      background: #faf5ff;
+    }
+
+    .conversation-item.active-chat {
+      background: #d9cff0;
+    }
+
+    .conversation-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: #4B2E83;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .conversation-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .conversation-name-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .conversation-name {
+      font-weight: bold;
+      font-size: 18px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .conversation-time {
+      font-size: 12px;
+      color: #777;
+      flex-shrink: 0;
+    }
+
+    .conversation-preview {
+      font-size: 14px;
+      color: #666;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-pill-name {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .chat-panel {
+      flex: 1;
+      background: #f4f4f4;
+      border: 4px solid #FDB913;
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      padding: 18px 22px;
+      border-bottom: 3px solid #FDB913;
+      color: #4B2E83;
+      background: white;
+    }
+
+    .chat-header h2 {
+      margin-bottom: 5px;
+      font-size: 28px;
+    }
+
+    .chat-header p {
+      color: #777;
+      font-size: 14px;
+    }
+
+    .messages {
+      flex: 1;
+      padding: 20px 20px 28px 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      background: #efefef;
+    }
+
+    .message-row {
+      display: flex;
+    }
+
+    .message-row.sent {
+      justify-content: flex-end;
+    }
+
+    .message-row.received {
+      justify-content: flex-start;
+    }
+
+    .message-wrapper {
+      position: relative;
+      display: inline-block;
+      max-width: 65%;
+    }
+
+    .message-bubble {
+      padding: 12px 15px;
+      border-radius: 18px;
+      word-wrap: break-word;
+      font-size: 15px;
+      line-height: 1.4;
+      position: relative;
+    }
+
+    .sent .message-bubble {
+      background: #FDB913;
+      color: #4B2E83;
+      border-bottom-right-radius: 6px;
+    }
+
+    .received .message-bubble {
+      background: white;
+      color: #4B2E83;
+      border: 2px solid #d8d8d8;
+      border-bottom-left-radius: 6px;
+    }
+
+    .message-time {
+      font-size: 11px;
+      margin-top: 6px;
+      opacity: 0.7;
+    }
+
+    .message-actions-toggle {
+      position: absolute;
+      top: 8px;
+      background: white;
+      color: #4B2E83;
+      border: 1px solid #ccc;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      font-size: 14px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 20;
+    }
+
+    .message-row:hover .message-actions-toggle {
+      display: flex;
+    }
+
+    .sent .message-actions-toggle {
+      left: -32px;
+    }
+
+    .received .message-actions-toggle {
+      right: -32px;
+    }
+
+    .message-menu {
+      display: none;
+      position: absolute;
+      top: 34px;
+      background: white;
+      border: 2px solid #FDB913;
+      border-radius: 12px;
+      padding: 8px;
+      z-index: 30;
+      min-width: 170px;
+      max-width: 220px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    }
+
+    .sent .message-menu {
+      right: 100%;
+      margin-right: 14px;
+    }
+
+    .received .message-menu {
+      left: 100%;
+      margin-left: 14px;
+    }
+
+    .message-menu button {
+      display: block;
+      width: 100%;
+      background: white;
+      color: #4B2E83;
+      border: none;
+      text-align: left;
+      padding: 8px 10px;
+      cursor: pointer;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .message-menu button:hover {
+      background: #f3ebff;
+    }
+
+    .reaction-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      white-space: nowrap;
+      padding-bottom: 4px;
+    }
+
+    .reaction-row::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .reaction-row::-webkit-scrollbar-thumb {
+      background: #d0bff0;
+      border-radius: 10px;
+    }
+
+    .reaction-row span {
+      flex: 0 0 auto;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 6px;
+      transition: 0.2s;
+    }
+
+    .reaction-row span:hover {
+      background: #f3ebff;
+      transform: scale(1.15);
+    }
+
+    .message-reaction-bubble {
+      position: absolute;
+      bottom: -16px;
+      background: white;
+      border: 1px solid #d8d8d8;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 15px;
+      line-height: 1;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    .sent .message-reaction-bubble {
+      left: 10px;
+    }
+
+    .received .message-reaction-bubble {
+      right: 10px;
+    }
+
+    .message-input {
+      display: flex;
+      gap: 12px;
+      padding: 16px;
+      border-top: 3px solid #FDB913;
+      background: white;
+    }
+
+    .message-input input {
+      flex: 1;
+      padding: 14px 16px;
+      border: 2px solid #FDB913;
+      border-radius: 14px;
+      outline: none;
+      font-size: 15px;
+    }
+
+    .empty-state {
+      color: #666;
+      text-align: center;
+      margin-top: 40px;
+      font-size: 18px;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #b9a2e2;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    @media (max-width: 900px) {
+      .main {
+        flex-direction: column;
+        height: auto;
+      }
+
+      .sidebar {
+        width: 100%;
+        min-width: unset;
+        height: 700px;
+      }
+
+      .chat-panel {
+        height: 650px;
+      }
+
+      .message-wrapper {
+        max-width: 82%;
+      }
+
+      .sent .message-actions-toggle {
+        left: -26px;
+      }
+
+      .received .message-actions-toggle {
+        right: -26px;
+      }
+
+      .sent .message-menu {
+        margin-right: 10px;
+      }
+
+      .received .message-menu {
+        margin-left: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">StudentBlog</div>
+
+    <div class="top-search">
+      <input type="text" placeholder="Search posts..." />
+    </div>
+
+    <div class="nav-buttons">
+      <button>Home</button>
+      <button>Posts</button>
+      <button>Chats</button>
+      <button>My Profile</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h2>Messages</h2>
+
+        <div class="current-account">
+          <div class="avatar" id="currentUserAvatar">SE</div>
+          <div class="current-account-text">
+            <span>Logged in as</span>
+            <span id="currentAccountName">sebber</span>
+          </div>
+        </div>
+
+        <div class="search-user-box">
+          <input type="text" id="userSearch" placeholder="Search users to start a chat..." />
+        </div>
+
+        <div class="search-results" id="searchResults"></div>
+      </div>
+
+      <div class="sidebar-scroll" id="sidebarScroll"></div>
+    </div>
+
+    <div class="chat-panel">
+      <div class="chat-header" id="chatHeader">
+        <h2>Select a conversation</h2>
+        <p>Your messages will appear here</p>
+      </div>
+
+      <div class="messages" id="messages">
+        <div class="empty-state">Choose someone from the left to start chatting.</div>
+      </div>
+
+      <div class="message-input">
+        <input type="text" id="messageInput" placeholder="Type a message..." />
+        <button id="sendBtn">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const users = [
+      { id: 1, username: "sebber" },
+      { id: 2, username: "ksauce" },
+      { id: 3, username: "andy" },
+      { id: 4, username: "abu" },
+      { id: 5, username: "jayden" },
+      { id: 6, username: "maria24" },
+      { id: 7, username: "imessagew" },
+      { id: 8, username: "studyguy24" },
+      { id: 9, username: "laurierhelp7" },
+      { id: 10, username: "cp213king" },
+      { id: 11, username: "midtermman88" },
+      { id: 12, username: "mathwiz02" },
+      { id: 13, username: "biochad17" },
+      { id: 14, username: "notesninja99" },
+      { id: 15, username: "quietkid44" },
+      { id: 16, username: "waterlooboy9" },
+      { id: 17, username: "campusvibes21" },
+      { id: 18, username: "late2class33" }
+    ];
+
+    let currentUserId = 1;
+    let selectedConversationId = null;
+
+    function getStoredConversations() {
+      const saved = localStorage.getItem("studentblog_single_user_conversations_with_reactions");
+      if (saved) {
+        return JSON.parse(saved);
+      }
+
+      const starterConversations = [
+        {
+          id: 1,
+          participants: [1, 2],
+          messages: [
+            { senderId: 1, text: "yo", time: "10:01 AM", reaction: "" },
+            { senderId: 2, text: "what's up", time: "10:02 AM", reaction: "" }
+          ]
+        },
+        {
+          id: 2,
+          participants: [1, 5],
+          messages: [
+            { senderId: 5, text: "are you going to class today?", time: "9:45 AM", reaction: "" }
+          ]
+        },
+        {
+          id: 3,
+          participants: [1, 3],
+          messages: [
+            { senderId: 1, text: "did you finish the assignment?", time: "11:20 AM", reaction: "" },
+            { senderId: 3, text: "almost done", time: "11:22 AM", reaction: "" }
+          ]
+        },
+        {
+          id: 4,
+          participants: [1, 4],
+          messages: [
+            { senderId: 4, text: "you coming to campus?", time: "12:30 PM", reaction: "" }
+          ]
+        }
+      ];
+
+      localStorage.setItem(
+        "studentblog_single_user_conversations_with_reactions",
+        JSON.stringify(starterConversations)
+      );
+
+      return starterConversations;
+    }
+
+    let conversations = getStoredConversations();
+
+    function saveConversations() {
+      localStorage.setItem(
+        "studentblog_single_user_conversations_with_reactions",
+        JSON.stringify(conversations)
+      );
+    }
+
+    function getCurrentUser() {
+      return users.find(user => user.id === currentUserId);
+    }
+
+    function getUserById(id) {
+      return users.find(user => user.id === id);
+    }
+
+    function getOtherUser(conversation) {
+      const otherUserId = conversation.participants.find(id => id !== currentUserId);
+      return getUserById(otherUserId);
+    }
+
+    function getInitials(name) {
+      return name.substring(0, 2).toUpperCase();
+    }
+
+    function updateCurrentAccountName() {
+      const currentUser = getCurrentUser();
+      document.getElementById("currentAccountName").textContent = currentUser.username;
+      document.getElementById("currentUserAvatar").textContent = getInitials(currentUser.username);
+    }
+
+    function renderSidebarList() {
+      const sidebarScroll = document.getElementById("sidebarScroll");
+      sidebarScroll.innerHTML = "";
+
+      const myConversations = conversations.filter(conversation =>
+        conversation.participants.includes(currentUserId)
+      );
+
+      if (myConversations.length > 0) {
+        const chatLabel = document.createElement("div");
+        chatLabel.className = "section-label";
+        chatLabel.textContent = "Recent chats";
+        sidebarScroll.appendChild(chatLabel);
+
+        myConversations.forEach(conversation => {
+          const otherUser = getOtherUser(conversation);
+          const lastMessage = conversation.messages[conversation.messages.length - 1];
+
+          const item = document.createElement("div");
+          item.className = "conversation-item";
+
+          if (conversation.id === selectedConversationId) {
+            item.classList.add("active-chat");
+          }
+
+          item.innerHTML = `
+            <div class="conversation-top">
+              <div class="avatar">${getInitials(otherUser.username)}</div>
+              <div class="conversation-info">
+                <div class="conversation-name-row">
+                  <div class="conversation-name">${otherUser.username}</div>
+                  <div class="conversation-time">${lastMessage ? lastMessage.time : ""}</div>
+                </div>
+                <div class="conversation-preview">${lastMessage ? lastMessage.text : "Start chatting"}</div>
+              </div>
+            </div>
+          `;
+
+          item.addEventListener("click", () => {
+            selectedConversationId = conversation.id;
+            renderSidebarList();
+            renderMessages();
+          });
+
+          sidebarScroll.appendChild(item);
+        });
+      }
+
+      const otherUsers = users.filter(user => user.id !== currentUserId);
+
+      const peopleLabel = document.createElement("div");
+      peopleLabel.className = "section-label";
+      peopleLabel.textContent = "People";
+      sidebarScroll.appendChild(peopleLabel);
+
+      otherUsers.forEach(user => {
+        const existingConversation = conversations.find(c =>
+          c.participants.includes(currentUserId) &&
+          c.participants.includes(user.id) &&
+          c.participants.length === 2
+        );
+
+        if (existingConversation) {
+          return;
+        }
+
+        const userPill = document.createElement("div");
+        userPill.className = "user-pill";
+
+        userPill.innerHTML = `
+          <div class="avatar">${getInitials(user.username)}</div>
+          <div class="user-pill-name">${user.username}</div>
+        `;
+
+        userPill.addEventListener("click", () => {
+          openOrCreateConversation(user.id);
+        });
+
+        sidebarScroll.appendChild(userPill);
+      });
+    }
+
+    function renderMessages() {
+      const messagesContainer = document.getElementById("messages");
+      const chatHeader = document.getElementById("chatHeader");
+
+      if (!selectedConversationId) {
+        chatHeader.innerHTML = `
+          <h2>Select a conversation</h2>
+          <p>Your messages will appear here</p>
+        `;
+        messagesContainer.innerHTML = `<div class="empty-state">Choose someone from the left to start chatting.</div>`;
+        return;
+      }
+
+      const conversation = conversations.find(c => c.id === selectedConversationId);
+
+      if (!conversation) {
+        selectedConversationId = null;
+        renderMessages();
+        return;
+      }
+
+      const otherUser = getOtherUser(conversation);
+
+      chatHeader.innerHTML = `
+        <h2>${otherUser.username}</h2>
+        <p>Direct messages</p>
+      `;
+
+      messagesContainer.innerHTML = "";
+
+      conversation.messages.forEach((message, index) => {
+        const row = document.createElement("div");
+        const isMine = message.senderId === currentUserId;
+
+        row.className = "message-row " + (isMine ? "sent" : "received");
+
+        row.innerHTML = `
+          <div class="message-wrapper">
+            <div class="message-actions-toggle" onclick="toggleMessageMenu(${conversation.id}, ${index}, event)">⋯</div>
+
+            <div class="message-bubble">
+              <div>${message.text}</div>
+              <div class="message-time">${message.time}</div>
+            </div>
+
+            ${message.reaction ? `<div class="message-reaction-bubble">${message.reaction}</div>` : ""}
+
+            <div class="message-menu" id="menu-${conversation.id}-${index}">
+              ${
+                isMine
+                  ? `
+                    <button onclick="editMessage(${conversation.id}, ${index})">Edit</button>
+                    <button onclick="deleteMessage(${conversation.id}, ${index})">Delete</button>
+                  `
+                  : ""
+              }
+
+              <div class="reaction-row">
+                <span onclick="reactToMessage(${conversation.id}, ${index}, '👍')">👍</span>
+                <span onclick="reactToMessage(${conversation.id}, ${index}, '❤️')">❤️</span>
+                <span onclick="reactToMessage(${conversation.id}, ${index}, '😂')">😂</span>
+                <span onclick="reactToMessage(${conversation.id}, ${index}, '👎')">👎</span>
+                <span onclick="reactToMessage(${conversation.id}, ${index}, '😡')">😡</span>
+                <span onclick="reactToMessage(${conversation.id}, ${index}, '🔥')">🔥</span>
+                <span onclick="reactToMessage(${conversation.id}, ${index}, '😭')">😭</span>
+                <span onclick="reactToMessage(${conversation.id}, ${index}, '😮')">😮</span>
+                <span onclick="reactToMessage(${conversation.id}, ${index}, '🎉')">🎉</span>
+                <span onclick="reactToMessage(${conversation.id}, ${index}, '💯')">💯</span>
+              </div>
+            </div>
+          </div>
+        `;
+
+        messagesContainer.appendChild(row);
+      });
+
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function formatCurrentTime() {
+      return new Date().toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit"
+      });
+    }
+
+    function sendMessage() {
+      const input = document.getElementById("messageInput");
+      const text = input.value.trim();
+
+      if (!text || !selectedConversationId) {
+        return;
+      }
+
+      const conversation = conversations.find(c => c.id === selectedConversationId);
+
+      conversation.messages.push({
+        senderId: currentUserId,
+        text: text,
+        time: formatCurrentTime(),
+        reaction: ""
+      });
+
+      saveConversations();
+      input.value = "";
+      renderSidebarList();
+      renderMessages();
+    }
+
+    function openOrCreateConversation(otherUserId) {
+      if (otherUserId === currentUserId) {
+        return;
+      }
+
+      let conversation = conversations.find(c =>
+        c.participants.includes(currentUserId) &&
+        c.participants.includes(otherUserId) &&
+        c.participants.length === 2
+      );
+
+      if (!conversation) {
+        conversation = {
+          id: Date.now(),
+          participants: [currentUserId, otherUserId],
+          messages: []
+        };
+
+        conversations.push(conversation);
+        saveConversations();
+      }
+
+      selectedConversationId = conversation.id;
+      renderSidebarList();
+      renderMessages();
+    }
+
+    function renderSearchResults() {
+      const searchValue = document.getElementById("userSearch").value.trim().toLowerCase();
+      const resultsContainer = document.getElementById("searchResults");
+      resultsContainer.innerHTML = "";
+
+      if (searchValue === "") {
+        return;
+      }
+
+      const filteredUsers = users.filter(user =>
+        user.id !== currentUserId &&
+        user.username.toLowerCase().includes(searchValue)
+      );
+
+      if (filteredUsers.length === 0) {
+        resultsContainer.innerHTML = `<div style="color:#4B2E83; padding:8px 4px;">No users found</div>`;
+        return;
+      }
+
+      filteredUsers.forEach(user => {
+        const button = document.createElement("button");
+        button.textContent = user.username;
+
+        button.addEventListener("click", () => {
+          openOrCreateConversation(user.id);
+          document.getElementById("userSearch").value = "";
+          resultsContainer.innerHTML = "";
+        });
+
+        resultsContainer.appendChild(button);
+      });
+    }
+
+    function toggleMessageMenu(conversationId, messageIndex, event) {
+      event.stopPropagation();
+
+      const menu = document.getElementById(`menu-${conversationId}-${messageIndex}`);
+      const allMenus = document.querySelectorAll(".message-menu");
+
+      allMenus.forEach(item => {
+        if (item !== menu) {
+          item.style.display = "none";
+        }
+      });
+
+      if (menu.style.display === "block") {
+        menu.style.display = "none";
+      } else {
+        menu.style.display = "block";
+      }
+    }
+
+    function editMessage(conversationId, messageIndex) {
+      const conversation = conversations.find(c => c.id === conversationId);
+      const message = conversation.messages[messageIndex];
+
+      if (message.senderId !== currentUserId) {
+        alert("You can only edit your own messages.");
+        return;
+      }
+
+      const newText = prompt("Edit your message:", message.text);
+
+      if (newText !== null && newText.trim() !== "") {
+        message.text = newText.trim();
+        saveConversations();
+        renderSidebarList();
+        renderMessages();
+      }
+    }
+
+    function deleteMessage(conversationId, messageIndex) {
+      const conversation = conversations.find(c => c.id === conversationId);
+      const message = conversation.messages[messageIndex];
+
+      if (message.senderId !== currentUserId) {
+        alert("You can only delete your own messages.");
+        return;
+      }
+
+      const confirmed = confirm("Delete this message?");
+
+      if (confirmed) {
+        conversation.messages.splice(messageIndex, 1);
+        saveConversations();
+        renderSidebarList();
+        renderMessages();
+      }
+    }
+
+    function reactToMessage(conversationId, messageIndex, emoji) {
+      const conversation = conversations.find(c => c.id === conversationId);
+      const message = conversation.messages[messageIndex];
+
+      if (message.reaction === emoji) {
+        message.reaction = "";
+      } else {
+        message.reaction = emoji;
+      }
+
+      saveConversations();
+      renderMessages();
+    }
+
+    document.addEventListener("click", function(event) {
+      if (!event.target.closest(".message-wrapper")) {
+        document.querySelectorAll(".message-menu").forEach(menu => {
+          menu.style.display = "none";
+        });
+      }
+    });
+
+    document.getElementById("sendBtn").addEventListener("click", sendMessage);
+
+    document.getElementById("messageInput").addEventListener("keypress", function(event) {
+      if (event.key === "Enter") {
+        sendMessage();
+      }
+    });
+
+    document.getElementById("userSearch").addEventListener("input", renderSearchResults);
+
+    updateCurrentAccountName();
+    renderSidebarList();
+    renderMessages();
+  </script>
+</body>
+</html>
