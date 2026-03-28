@@ -1,80 +1,110 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Community Blog</title>
+    <meta charset="UTF-8">
+    <title>Community Blog</title>
+    <style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+        padding: 20px;
+    }
 
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f4f4f4;
-    padding: 20px;
-}
+    /* Post box */
+    .post {
+        background: white;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
 
-/* Post box */
-.post {
-    background: white;
-    padding: 15px;
-    margin: 15px 0;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
+    /* Header with PFP */
+    .post-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
 
-/* Header with PFP */
-.post-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 10px;
-}
+    /* Placeholder PFP */
+    .pfp {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: #888;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: white;
+        font-size: 20px;
+    }
 
-/* Placeholder PFP */
-.pfp {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: #888;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    color: white;
-    font-size: 20px;
-}
+    /* Tag styling */
+    .tags {
+        margin-top: 10px;
+    }
 
-/* Tag styling */
-.tags {
-    margin-top: 10px;
-}
+    .tag {
+        display: inline-block;
+        background: #e0e0e0;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        margin-right: 6px;
+    }
 
-.tag {
-    display: inline-block;
-    background: #e0e0e0;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    margin-right: 6px;
-}
+    /* Inputs */
+    input, textarea {
+        display: block;
+        width: 300px;
+        margin-bottom: 8px;
+        padding: 6px;
+    }
 
-/* Inputs */
-input, textarea {
-    display: block;
-    width: 300px;
-    margin-bottom: 8px;
-    padding: 6px;
-}
+    textarea {
+        height: 80px;
+    }
 
-textarea {
-    height: 80px;
-}
-
-button {
-    padding: 8px 12px;
-}
-</style>
+    button {
+        padding: 8px 12px;
+    }
+    .navbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: white;
+        padding: 10px 12px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    .logo {
+        font-weight: bold;
+    }
+    .search-bar input {
+        width: 200px;
+    }
+    .nav-buttons button {
+        margin-left: 8px;
+    }
+    </style>
 </head>
-
 <body>
+
+<div class="navbar">
+    <div class="logo">StudentBlog</div>
+    <div class="search-bar">
+        <input type="text" placeholder="Search posts..." id="searchInput">
+    </div>
+    <div class="nav-buttons">
+        <button onclick="goHome()">Home</button>
+        <button onclick="goPosts()">Posts</button>
+        <button onclick="goChats()">Chats</button>
+        <button onclick="goProfile()">My Profile</button>
+    </div>
+</div>
 
 <h2>Community Blog</h2>
 
@@ -90,53 +120,74 @@ button {
 <div id="posts"></div>
 
 <script>
-// Load posts from server
 async function loadPosts() {
-    const res = await fetch('/posts');
-    const posts = await res.json();
+    try {
+        const res = await fetch('/posts');
+        if (!res.ok) throw new Error(`Load error: ${res.status}`);
 
-    const postsDiv = document.getElementById('posts');
-    postsDiv.innerHTML = '';
+        const posts = await res.json();
+        const postsDiv = document.getElementById('posts');
+        postsDiv.innerHTML = '';
 
-    posts.forEach(post => {
-        const div = document.createElement('div');
-        div.className = 'post';
+        const searchTerm = (document.getElementById('searchInput').value || '').toLowerCase();
 
-        const firstLetter = post.author
-            ? post.author.charAt(0).toUpperCase()
-            : "?";
+        posts
+            .filter(post => !searchTerm || post.title.toLowerCase().includes(searchTerm) || post.content.toLowerCase().includes(searchTerm) || post.author.toLowerCase().includes(searchTerm))
+            .forEach(post => {
+                const div = document.createElement('div');
+                div.className = 'post';
 
-        const tagsHTML = (post.tags || []).map(tag =>
-            `<span class="tag">#${tag}</span>`
-        ).join('');
+                const firstLetter = post.author ? post.author.charAt(0).toUpperCase() : '?';
 
-        div.innerHTML = `
-            <div class="post-header">
-                <div class="pfp">${firstLetter}</div>
-                <div>
-                    <h3>${post.title}</h3>
-                    <small>By ${post.author} • ${post.time}</small>
-                </div>
-            </div>
-            <p>${post.content}</p>
-            <div class="tags">${tagsHTML}</div>
-        `;
+                const tagsHTML = (post.tags || []).map(tag => `<span class="tag">#${tag}</span>`).join('');
 
-        postsDiv.appendChild(div);
-    });
+                div.innerHTML = `
+                    <div class="post-header">
+                        <div class="pfp">${firstLetter}</div>
+                        <div>
+                            <h3>${post.title}</h3>
+                            <small>By ${post.author} • ${post.time || ''}</small>
+                        </div>
+                    </div>
+                    <p>${post.content}</p>
+                    <div class="tags">${tagsHTML}</div>
+                `;
+
+                postsDiv.appendChild(div);
+            });
+    } catch (error) {
+        console.error('Failed to load posts:', error);
+    }
 }
 
-// Create new post
+function goHome() {
+    window.location.href = '/index.html';
+}
+
+function goPosts() {
+    window.location.href = '/blog.html';
+}
+
+function goChats() {
+    window.location.href = '/dm.html';
+}
+
+function goProfile() {
+    window.location.href = '/profile.html';
+}
+
 async function createPost() {
-    const author = document.getElementById('authorInput').value || "Anonymous";
-    const title = document.getElementById('titleInput').value;
-    const content = document.getElementById('contentInput').value;
+    const author = document.getElementById('authorInput').value || 'Anonymous';
+    const title = document.getElementById('titleInput').value.trim();
+    const content = document.getElementById('contentInput').value.trim();
     const tagsRaw = document.getElementById('tagsInput').value;
 
-    const tags = tagsRaw
-        .split(',')
-        .map(t => t.trim())
-        .filter(t => t.length > 0);
+    if (!title || !content) {
+        alert('Please provide both title and content.');
+        return;
+    }
+
+    const tags = tagsRaw.split(',').map(t => t.trim()).filter(t => t.length > 0);
 
     await fetch('/posts', {
         method: 'POST',
@@ -144,7 +195,6 @@ async function createPost() {
         body: JSON.stringify({ title, content, author, tags })
     });
 
-    // Clear inputs
     document.getElementById('authorInput').value = '';
     document.getElementById('titleInput').value = '';
     document.getElementById('contentInput').value = '';
@@ -153,10 +203,7 @@ async function createPost() {
     loadPosts();
 }
 
-// Auto-refresh every 3 seconds
 setInterval(loadPosts, 3000);
-
-// Initial load
 loadPosts();
 </script>
 

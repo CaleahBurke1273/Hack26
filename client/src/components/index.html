@@ -2,76 +2,139 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Profile App</title>
+<title>Student Blog Home</title>
 
 <style>
 body {
-    font-family: Arial;
-    text-align: left;
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
     background: #f4f4f4;
 }
 
-.profile {
+/* ===== Top Menu Bar ===== */
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #222;
+    padding: 10px 20px;
+    color: white;
+}
+
+.logo {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.search-bar input {
+    padding: 6px;
+    width: 250px;
+    border-radius: 4px;
+    border: none;
+}
+
+.nav-buttons button {
+    margin-left: 10px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* ===== Main Home Section ===== */
+.home-container {
+    width: 400px;
+    margin: 80px auto;
     background: white;
-    width: 300px;
-    margin: 50px auto;
-    padding: 20px;
+    padding: 30px;
     border-radius: 10px;
+    text-align: center;
 }
 
-input, textarea {
-    width: 90%;
-    margin: 5px;
-    padding: 8px;
+.home-container h2 {
+    margin-bottom: 20px;
 }
 
-button {
-    padding: 10px;
-    margin-top: 10px;
+.home-container button {
+    margin: 10px;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
 }
 </style>
+
+<script>
+function goHome() {
+    window.location.href = "/index.html";
+}
+function goPosts() {
+    window.location.href = "/blog.html";
+}
+
+function goChats() {
+    window.location.href = "/dm.html";
+}
+
+function goProfile() {
+    window.location.href = "/profile.html";
+}
+</script>
 </head>
 
 <body>
 
-<div class="profile">
-    <h2 id="name"></h2>
-    <p id="bio"></p>
+<!-- ===== NAVBAR ===== -->
+<div class="navbar">
+    <div class="logo">StudentBlog</div>
 
-    <input id="nameInput" placeholder="Enter name">
-    <textarea id="bioInput" placeholder="Enter bio"></textarea>
+    <div class="search-bar">
+        <input type="text" placeholder="Search posts...">
+    </div>
 
-    <button onclick="saveProfile()">Save Profile</button>
+    <div class="nav-buttons">
+        <button onclick="goPosts()">Posts</button>
+        <button onclick="goHome()">Home</button>
+        <button onclick="goProfile()">My Profile</button>
+    </div>
+</div>
+
+<!-- ===== HOME CONTENT ===== -->
+<div class="home-container">
+    <h2 id="greeting">Hi, </h2>
+
+    <button onclick="goProfile()">My Profile</button>
+    <button onclick="createPost()">Create Post</button>
 </div>
 
 <script>
-// Load profile when page opens
+// Load user name for greeting
 async function loadProfile() {
     const res = await fetch('/profile');
     const data = await res.json();
 
-    document.getElementById('name').innerText = data.name;
-    document.getElementById('bio').innerText = data.bio;
-
-    document.getElementById('nameInput').value = data.name;
-    document.getElementById('bioInput').value = data.bio;
+    document.getElementById('greeting').innerText = "Hi, " + data.name;
 }
 
-// Save profile
-async function saveProfile() {
-    const name = document.getElementById('nameInput').value;
-    const bio = document.getElementById('bioInput').value;
-
-    await fetch('/profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, bio })
-    });
-
-    loadProfile();
+// Navigation functions (you can link these later)
+function goPosts() {
+    window.location.href = "/posts.html";
 }
 
-// Run on page load
+function goHome() {
+    window.location.href = "/index.html";
+}
+
+function goProfile() {
+    window.location.href = "/profile.html";
+}
+
+function createPost() {
+    window.location.href = "/create-post.html";
+}
+
+// Run on load
 loadProfile();
 </script>
 
