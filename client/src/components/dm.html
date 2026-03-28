@@ -2,6 +2,26 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
+
+<body>
+
+<div class="navbar">
+    <div class="logo">StudentBlog</div>
+
+    <div class="search-bar">
+        <input type="text" placeholder="Search posts...">
+    </div>
+
+    <div class="nav-buttons">
+        <button onclick="goHome()">Home</button>
+        <button onclick="goPosts()">Posts</button>
+        <button onclick="goChats()">Chats</button>
+        <button onclick="goProfile()">My Profile</button>
+    </div>
+</div>
+
+<h2>Community Blog</h2>
+
 <title>Direct Messages</title>
 <style>
 body {
@@ -54,7 +74,39 @@ button {
 }
 </style>
 </head>
+
+<script>
+function goHome() {
+    window.location.href = "/index.html";
+}
+
+function goPosts() {
+    window.location.href = "/blog.html";
+}
+
+function goChats() {
+    window.location.href = "/dm.html";
+}
+
+function goProfile() {
+    window.location.href = "/profile.html";
+}
+</script>
 <body>
+<div class="navbar">
+    <div class="logo">StudentBlog</div>
+
+    <div class="search-bar">
+        <input type="text" placeholder="Search posts...">
+    </div>
+
+    <div class="nav-buttons">
+        <button onclick="goHome()">Home</button>
+        <button onclick="goPosts()">Posts</button>
+        <button onclick="goChats()">Chats</button>
+        <button onclick="goProfile()">My Profile</button>
+    </div>
+</div>
 
 <h2>Direct Messages</h2>
 
