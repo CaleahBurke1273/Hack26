@@ -2,31 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-
-<body>
-
-<div class="navbar">
-    <div class="logo">StudentBlog</div>
-
-    <div class="search-bar">
-        <input type="text" placeholder="Search posts...">
-    </div>
-
-    <div class="nav-buttons">
-        <button onclick="goHome()">Home</button>
-        <button onclick="goPosts()">Posts</button>
-        <button onclick="goChats()">Chats</button>
-        <button onclick="goProfile()">My Profile</button>
-    </div>
-</div>
-
-<h2>Community Blog</h2>
-
 <title>Direct Messages</title>
 <style>
 body {
     font-family: Arial, sans-serif;
-    background: #f2f2f2;
+    background: #4B2E83;
+    color: white;
     padding: 20px;
 }
 
@@ -35,27 +16,30 @@ body {
     height: 400px;
     overflow-y: auto;
     padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
+    border-radius: 12px;
+    border: 4px solid #FDB913;
     margin-bottom: 10px;
+    color: #4B2E83;
 }
 
 .message {
     margin: 8px 0;
     max-width: 60%;
-    padding: 8px 12px;
+    padding: 10px 14px;
     border-radius: 12px;
     clear: both;
 }
 
 .me {
-    background: #d1e7ff;
+    background: #FDB913;
+    color: #4B2E83;
     float: right;
     text-align: right;
 }
 
 .other {
     background: #e5e5e5;
+    color: #4B2E83;
     float: left;
 }
 
@@ -65,41 +49,67 @@ body {
 }
 
 input {
-    padding: 8px;
+    padding: 12px;
     flex: 1;
+    border: 2px solid #FDB913;
+    border-radius: 8px;
 }
 
 button {
-    padding: 8px 12px;
+    padding: 12px 18px;
+    background-color: #FDB913;
+    color: #4B2E83;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
 }
-</style>
-</head>
 
+button:hover {
+    background-color: #e0a800;
+}
+
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    padding: 15px 20px;
+    border-radius: 12px;
+    border: 4px solid #FDB913;
+    margin-bottom: 20px;
+    color: #4B2E83;
+}
+.logo { font-weight: bold; font-size: 20px; }
+.search-bar input { width: 250px; padding: 10px; margin-bottom: 0; }
+.nav-buttons button { margin-left: 8px; margin-top: 0; padding: 10px 16px; }
+h2 { color: white; margin-top: 0; }
+</style>
 <script>
 function goHome() {
-    window.location.href = "/index.html";
+    window.location.href = "index.html";
 }
 
 function goPosts() {
-    window.location.href = "/blog.html";
+    window.location.href = "blog.html";
 }
 
 function goChats() {
-    window.location.href = "/dm.html";
+    window.location.href = "dm.html";
 }
 
 function goProfile() {
-    window.location.href = "/profile.html";
+    window.location.href = "profile.html";
 }
 </script>
+</head>
 <body>
+
 <div class="navbar">
     <div class="logo">StudentBlog</div>
-
     <div class="search-bar">
         <input type="text" placeholder="Search posts...">
     </div>
-
     <div class="nav-buttons">
         <button onclick="goHome()">Home</button>
         <button onclick="goPosts()">Posts</button>
@@ -110,8 +120,10 @@ function goProfile() {
 
 <h2>Direct Messages</h2>
 
-<input id="meInput" placeholder="Your name">
-<input id="otherInput" placeholder="Chat with">
+<div style="display: flex; gap: 8px; margin-bottom: 10px;">
+    <input id="meInput" placeholder="Your name">
+    <input id="otherInput" placeholder="Chat with">
+</div>
 
 <div id="chatBox"></div>
 

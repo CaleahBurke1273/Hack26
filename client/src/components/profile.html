@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Laurier Profile Viewer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="container">
+
+    <div class="viewer-top-bar">
+      <button onclick="window.location.href='index.html'" class="back-btn">← Back to Home</button>
+
+      <div class="top-right-buttons">
+        <button id="editBtn" class="action-btn small-btn">Edit Profile</button>
+        <button id="settingsBtn" class="settings-btn small-btn">Settings</button>
+      </div>
+    </div>
+
+    <div class="profile-header">
+      <div class="profile-pic">Photo</div>
+      <h1>Student Profile</h1>
+    </div>
+
+    <div class="section">
+      <h2>Basic Information</h2>
+      <p><strong>First Name:</strong> <span id="viewFirstName">Not set</span></p>
+      <p><strong>Last Name:</strong> <span id="viewLastName">Not set</span></p>
+      <p><strong>Program:</strong> <span id="viewProgram">Not set</span></p>
+      <p><strong>Year of Study:</strong> <span id="viewYear">Not set</span></p>
+      <p><strong>Email:</strong> <span id="viewEmail">Not set</span></p>
+    </div>
+
+    <div class="section">
+      <h2>Interests</h2>
+      <div id="viewInterestList"></div>
+    </div>
+
+    <div class="section">
+      <h2>Courses Taken</h2>
+      <div id="viewCourseList"></div>
+    </div>
+
+    <div class="section">
+      <h2>Discussion Posts</h2>
+      <div class="placeholder-box">
+        Discussion posts will go here later.
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Other Student Features</h2>
+      <div class="placeholder-box">
+        More features like tutoring, reviews, and activity can go here later.
+      </div>
+    </div>
+
+  </div>
+
+  <script src="profile.js"></script>
+</body>
+</html>

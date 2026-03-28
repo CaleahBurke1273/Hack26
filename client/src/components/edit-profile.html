@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Edit Profile</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="container">
+
+    <div class="viewer-top-bar">
+      <button id="backBtn" class="back-btn">← Cancel</button>
+    </div>
+
+    <div class="profile-header">
+      <div class="profile-pic">Photo</div>
+      <h1>Edit Profile</h1>
+    </div>
+
+    <div class="section">
+      <h2>Basic Information</h2>
+      <label for="firstName">First Name</label>
+      <input type="text" id="firstName" placeholder="Enter first name" />
+
+      <label for="lastName">Last Name</label>
+      <input type="text" id="lastName" placeholder="Enter last name" />
+
+      <label for="program">Program</label>
+      <input type="text" id="program" placeholder="Enter program" />
+
+      <label for="year">Year of Study</label>
+      <input type="text" id="year" placeholder="e.g. 1st, 2nd, 3rd" />
+
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="Enter email address" />
+    </div>
+
+    <div class="section">
+      <h2>Interests</h2>
+      <select id="interestSelect">
+        <option value="">Select an interest...</option>
+        <option value="Programming">Programming</option>
+        <option value="Design">Design</option>
+        <option value="Business">Business</option>
+        <option value="Music">Music</option>
+        <option value="Sports">Sports</option>
+        <option value="Gaming">Gaming</option>
+      </select>
+      <button id="addInterest" class="action-btn" style="margin-top: 10px;">Add Interest</button>
+      <div id="interestList" style="margin-top: 15px;"></div>
+    </div>
+
+    <div class="section">
+      <h2>Courses Taken</h2>
+      <select id="courseSelect">
+        <option value="">Select a course...</option>
+        <option value="CP104">CP104</option>
+        <option value="CP164">CP164</option>
+        <option value="MA103">MA103</option>
+        <option value="BU111">BU111</option>
+        <option value="EC120">EC120</option>
+      </select>
+      <button id="addCourse" class="action-btn" style="margin-top: 10px;">Add Course</button>
+      <div id="courseList" style="margin-top: 15px;"></div>
+    </div>
+
+    <div class="section" style="border-bottom: none; text-align: center;">
+      <button id="save" class="action-btn" style="width: 100%; font-size: 16px;">Save Profile</button>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
