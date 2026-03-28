@@ -5,9 +5,9 @@
  * Desc: Contains database functions for messaging service.
  */
 
-import { supabase } from "./supabaseClient";
+import { supabase } from "./supabaseClient.js";
 
-// Send a message
+// Send a new message
 export const sendMessage = async ({ sender_id, recipient_id, message }) => {
   const { data, error } = await supabase
     .from("messages")
@@ -25,4 +25,26 @@ export const getMessages = async (userA, userB) => {
     .order("created_at", { ascending: true });
   if (error) throw error;
   return data;
+};
+
+// Edit a message
+export const editMessage = async (messageId, userId, newText) => {
+  const { data, error } = await supabase
+    .from("messages")
+    .update({ message: newText })
+    .eq("id", messageId)
+    .eq("sender_id", userId); // only allow sender to edit
+  if (error) throw error;
+  return data[0];
+};
+
+// Delete a message
+export const deleteMessage = async (messageId, userId) => {
+  const { data, error } = await supabase
+    .from("messages")
+    .delete()
+    .eq("id", messageId)
+    .eq("sender_id", userId); // only allow sender to delete
+  if (error) throw error;
+  return data[0];
 };
