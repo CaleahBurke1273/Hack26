@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type React from "react"; // ✅ Fixes React.FormEvent + React.ComponentType
+import type React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
