@@ -125,6 +125,18 @@ CREATE POLICY "Users can delete own listings"
   ON public.marketplace_listings FOR DELETE TO authenticated USING (auth.uid() = seller_id);
 
 -- ============================
+-- blog comments
+-- ============================
+
+create table comments (
+  id uuid primary key default gen_random_uuid(),
+  post_id uuid references posts(id) on delete cascade,
+  user_id uuid references profiles(user_id),
+  content text not null,
+  created_at timestamp with time zone default now()
+);
+
+-- ============================
 -- CONVERSATIONS
 -- ============================
 
