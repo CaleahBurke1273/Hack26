@@ -100,6 +100,21 @@ const Marketplace = () => {
     queryClient.invalidateQueries({ queryKey: ["marketplace"] });
   };
 
+  const handleDelete = async (id: string) => {
+    const confirmDelete = confirm("Delete this listing?");
+    if (!confirmDelete) return;
+
+    const { error } = await supabase
+      .from("marketplace_listings")
+      .delete()
+      .eq("id", id);
+
+    if (error) return toast.error("Failed to delete listing.");
+
+    toast.success("Listing deleted.");
+    queryClient.invalidateQueries({ queryKey: ["marketplace"] });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -218,6 +233,17 @@ const Marketplace = () => {
                     {format(new Date(l.created_at), "MMM d, yyyy")}
                   </p>
                 </div>
+
+                {/* DELETE BUTTON (ONLY YOUR LISTINGS) */}
+                {user?.id === l.seller_id && (
+                  <Button
+                    size="sm"
+                    onClick={() => handleDelete(l.id)}
+                    className="bg-purple-600 hover:bg-purple-700 text-white w-full"
+                  >
+                    Delete Listing
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ))}
