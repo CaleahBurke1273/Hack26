@@ -18,6 +18,7 @@ import SearchPage from "./pages/SearchPage";
 import Messages from "./pages/Messages";
 import Marketplace from "./pages/Marketplace";
 import Blogs from "./pages/Blogs";
+import BlogPostPage from "@/pages/BlogPost";
 import Academic from "./pages/Academic";
 import CalendarPage from "./pages/CalendarPage";
 import Premium from "./pages/Premium";
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/verify" element={<Verify />} />
+
             <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/profile/:id" element={<ProfileView />} />
@@ -44,11 +46,15 @@ const App = () => (
               <Route path="/search" element={<SearchPage />} />
               <Route path="/messages" element={<Messages />} />
               <Route path="/marketplace" element={<Marketplace />} />
+
               <Route path="/blogs" element={<Blogs />} />
+              <Route path="/blogs/:id" element={<BlogPostPage />} />
+
               <Route path="/academic" element={<Academic />} />
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/premium" element={<Premium />} />
             </Route>
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
