@@ -1,11 +1,14 @@
+"use client";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+
 import {
   Dialog,
   DialogContent,
@@ -13,7 +16,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+
 import { Plus, ShoppingBag } from "lucide-react";
+
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -22,7 +27,8 @@ const Marketplace = () => {
   const queryClient = useQueryClient();
 
   const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
+  const [creating, setCreating] = useState(false);
+
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -30,89 +36,58 @@ const Marketplace = () => {
     category: "other",
     image_url: "",
   });
-  const [creating, setCreating] = useState(false);
 
-  // ============================
-  // FETCH LISTINGS + PROFILES
-  // ============================
-  const { data: listings = [], isLoading } = useQuery({
-    queryKey: ["marketplace", search],
+  const { data: listings, error } = useQuery({
+    queryKey: ["marketplace"],
     queryFn: async () => {
-      // 1. Fetch listings
-      let query = supabase
-        .from("marketplace_listings")
-        .select("*")
-        .eq("status", "active")
-        .order("created_at", { ascending: false });
-
-      if (search.trim()) {
-        query = query.ilike("title", `%${search}%`);
-      }
-
-      const { data: listingsData, error: listingsError } = await query;
-
-      if (listingsError) {
-        console.error("Marketplace fetch error:", listingsError);
-        toast.error("Failed to load listings.");
+      if (!user) {
+        console.log("No user authenticated, skipping marketplace query");
         return [];
       }
 
-      if (!listingsData || listingsData.length === 0) return [];
+      const { data, error } = await supabase
+        .from("marketplace_listings")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-      // 2. Fetch seller profiles
-      const sellerIds = listingsData.map((l) => l.seller_id);
-
-      const { data: profilesData, error: profilesError } = await supabase
-        .from("profiles")
-        .select("user_id, full_name")
-        .in("user_id", sellerIds);
-
-      if (profilesError) {
-        console.error("Profile fetch error:", profilesError);
-        return listingsData.map((l) => ({ ...l, seller: null }));
+      if (error) {
+        console.error("Error fetching listings:", error);
+        toast.error("Failed to load marketplace listings.");
+        return [];
       }
 
-      // 3. Merge listings + profiles
-      const merged = listingsData.map((l) => ({
-        ...l,
-        seller: profilesData.find((p) => p.user_id === l.seller_id) || null,
-      }));
-
-      return merged;
+      return data || [];
     },
+    enabled: !!user, // Only run query if user is authenticated
   });
 
-  // ============================
-  // CREATE LISTING
-  // ============================
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
-      toast.error("You must be logged in to create a listing.");
-      return;
-    }
+    if (!user) return;
 
     setCreating(true);
 
-    const { error } = await supabase.from("marketplace_listings").insert({
-      seller_id: user.id,
-      title: form.title,
-      description: form.description,
-      price: Number(form.price),
-      category: form.category,
-      image_url: form.image_url || null,
-    });
+    const { error } = await supabase
+      .from("marketplace_listings")
+      .insert({
+        seller_id: user.id,
+        title: form.title,
+        description: form.description,
+        price: Number(form.price),
+        category: form.category,
+        image_url: form.image_url || null,
+      });
 
     setCreating(false);
 
     if (error) {
-      console.error(error);
       toast.error("Failed to create listing.");
       return;
     }
 
     toast.success("Listing created!");
     setOpen(false);
+
     setForm({
       title: "",
       description: "",
@@ -121,22 +96,21 @@ const Marketplace = () => {
       image_url: "",
     });
 
+    // ✅ Simple cache invalidation like Blogs
     queryClient.invalidateQueries({ queryKey: ["marketplace"] });
   };
 
-  // ============================
-  // RENDER
-  // ============================
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Marketplace</h1>
+        <h1 className="text-2xl font-bold">Marketplace</h1>
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button disabled={!user}>
-              <Plus className="h-4 w-4 mr-1" /> New Listing
+            <Button>
+              <Plus className="h-4 w-4 mr-1" />
+              New Listing
             </Button>
           </DialogTrigger>
 
@@ -191,7 +165,11 @@ const Marketplace = () => {
                 }
               />
 
-              <Button type="submit" className="w-full" disabled={creating}>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={creating}
+              >
                 {creating ? "Creating..." : "Create Listing"}
               </Button>
             </form>
@@ -199,56 +177,56 @@ const Marketplace = () => {
         </Dialog>
       </div>
 
-      {/* Search bar */}
-      <Input
-        placeholder="Search listings by title..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="max-w-sm"
-      />
-
-      {/* Listings */}
-      {isLoading ? (
-        <div className="text-center py-20 text-muted-foreground">
-          Loading listings...
-        </div>
-      ) : listings.length > 0 ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Listings Grid */}
+      {listings && listings.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {listings.map((l: any) => (
             <Card key={l.id} className="overflow-hidden">
+              {/* Image */}
               {l.image_url && (
                 <img
                   src={l.image_url}
-                  className="w-full h-40 object-cover"
                   alt={l.title}
+                  className="w-full h-48 object-cover"
                 />
               )}
 
-              <CardContent className="p-4 space-y-2">
-                <div className="flex items-start justify-between">
-                  <h3 className="font-semibold text-foreground">{l.title}</h3>
-                  <span className="text-primary font-bold">
+              <CardContent className="p-4 space-y-3">
+                {/* Title + Price */}
+                <div className="flex justify-between items-start">
+                  <h3 className="font-semibold text-lg">{l.title}</h3>
+                  <span className="text-primary font-bold text-lg">
                     ${Number(l.price).toFixed(2)}
                   </span>
                 </div>
 
-                <p className="text-sm text-muted-foreground line-clamp-2">
+                {/* Category */}
+                <span className="text-xs px-2 py-1 rounded-full bg-muted inline-block">
+                  {l.category}
+                </span>
+
+                {/* Description */}
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                   {l.description}
                 </p>
 
-                <p className="text-xs text-muted-foreground">
-                  {l.seller?.full_name || "Unknown Seller"} ·{" "}
-                  {format(new Date(l.created_at), "MMM d")}
-                </p>
+                {/* Seller + Date */}
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <p>Seller: {l.profiles?.full_name || "Unknown"}</p>
+                  <p>
+                    Posted:{" "}
+                    {format(new Date(l.created_at), "MMM d, yyyy")}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
       ) : (
         <div className="text-center py-20">
-          <ShoppingBag className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+          <ShoppingBag className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
           <p className="text-muted-foreground">
-            No listings found. Try a different search.
+            No listings yet. Be the first to sell something!
           </p>
         </div>
       )}
