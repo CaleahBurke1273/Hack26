@@ -81,7 +81,7 @@ src/
 ##  Getting Started
 The URL below will take you to the fully deployed project.
 
-Deployed Project URL: 
+Deployed Project URL: https://golden-task-ezao.vercel.app/dashboard
 
 
 ** IF RUNNING PURELY OFF OWN MACHINE, FOLLOW STEPS BELOW TO RUN OFF LOCALHOST
