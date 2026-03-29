@@ -6,7 +6,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Plus, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -14,11 +20,18 @@ import { format } from "date-fns";
 const Blogs = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ title: "", content: "" });
   const [creating, setCreating] = useState(false);
 
-  const { data: posts = [] } = useQuery({
+  // ============================
+  // FETCH BLOG POSTS
+  // ============================
+  const {
+    data: posts = [],
+    isLoading,
+  } = useQuery({
     queryKey: ["blog-posts"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -27,10 +40,8 @@ const Blogs = () => {
         .eq("category", "blog")
         .order("created_at", { ascending: false });
 
-      console.log("Fetched blog posts:", data);
-      console.log("Fetch blog posts error:", error);
-
       if (error) {
+        console.error("Fetch blog posts error:", error);
         toast.error("Failed to load blog posts.");
         return [];
       }
@@ -39,9 +50,16 @@ const Blogs = () => {
     },
   });
 
+  // ============================
+  // CREATE BLOG POST
+  // ============================
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+
+    if (!user) {
+      toast.error("You must be logged in to create a post.");
+      return;
+    }
 
     setCreating(true);
 
@@ -57,10 +75,8 @@ const Blogs = () => {
 
     setCreating(false);
 
-    console.log("Created post data:", data);
-    console.log("Create post error:", error);
-
     if (error) {
+      console.error("Create post error:", error);
       toast.error("Failed to create post.");
       return;
     }
@@ -68,17 +84,23 @@ const Blogs = () => {
     toast.success("Blog post created!");
     setOpen(false);
     setForm({ title: "", content: "" });
+
+    // Refresh posts
     queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
   };
 
+  // ============================
+  // RENDER
+  // ============================
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">School Blogs</h1>
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button disabled={!user}>
               <Plus className="h-4 w-4 mr-1" />
               New Post
             </Button>
@@ -93,14 +115,18 @@ const Blogs = () => {
               <Input
                 placeholder="Title"
                 value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, title: e.target.value })
+                }
                 required
               />
 
               <Textarea
                 placeholder="Share your thoughts..."
                 value={form.content}
-                onChange={(e) => setForm({ ...form, content: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, content: e.target.value })
+                }
                 rows={6}
                 required
               />
@@ -113,13 +139,27 @@ const Blogs = () => {
         </Dialog>
       </div>
 
-      {posts.length > 0 ? (
+      {/* Loading State */}
+      {isLoading && (
+        <div className="text-center py-20 text-muted-foreground">
+          Loading posts...
+        </div>
+      )}
+
+      {/* Posts */}
+      {!isLoading && posts.length > 0 ? (
         <div className="space-y-4">
           {posts.map((p: any) => (
             <Card key={p.id}>
               <CardContent className="p-5 space-y-2">
-                <h3 className="text-lg font-semibold text-foreground">{p.title}</h3>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{p.content}</p>
+                <h3 className="text-lg font-semibold text-foreground">
+                  {p.title}
+                </h3>
+
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {p.content}
+                </p>
+
                 <p className="text-xs text-muted-foreground">
                   {format(new Date(p.created_at), "MMM d, yyyy")}
                 </p>
@@ -128,12 +168,14 @@ const Blogs = () => {
           ))}
         </div>
       ) : (
-        <div className="text-center py-20">
-          <BookOpen className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-          <p className="text-muted-foreground">
-            No blog posts yet. Share your first campus story!
-          </p>
-        </div>
+        !isLoading && (
+          <div className="text-center py-20">
+            <BookOpen className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+            <p className="text-muted-foreground">
+              No blog posts yet. Share your first campus story!
+            </p>
+          </div>
+        )
       )}
     </div>
   );
