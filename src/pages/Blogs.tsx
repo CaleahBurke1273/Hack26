@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type React from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,21 +31,15 @@ import { format } from "date-fns";
 
 import type { Database } from "@/integrations/supabase/types";
 
-// Strong typing from your schema
 type BlogPost = Database["public"]["Tables"]["posts"]["Row"];
 type BlogCategory = Database["public"]["Enums"]["post_category"];
 
-// Categories must match your enum exactly
-const categories: {
-  name: string;
-  value: BlogCategory;
-  icon: React.ComponentType<{ className?: string }>;
-}[] = [
+const categories = [
   { name: "Blog", value: "blog", icon: BookOpen },
   { name: "Academic", value: "academic", icon: FlaskConical },
   { name: "Campus", value: "campus", icon: Leaf },
   { name: "General", value: "general", icon: Palette },
-];
+] as const;
 
 const Blogs = () => {
   const { user } = useAuth();
@@ -53,51 +48,39 @@ const Blogs = () => {
   const [open, setOpen] = useState(false);
   const [creating, setCreating] = useState(false);
 
-  const [form, setForm] = useState<{
-    title: string;
-    content: string;
-    category: BlogCategory;
-  }>({
+  const [form, setForm] = useState({
     title: "",
     content: "",
-    category: "general",
+    category: "general" as BlogCategory,
   });
 
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] =
     useState<BlogCategory | null>(null);
 
-  // Fetch posts
   const { data: posts = [], isLoading } = useQuery<BlogPost[]>({
     queryKey: ["blog-posts", selectedCategory],
     queryFn: async () => {
       let query = supabase.from("posts").select("*");
 
-      if (selectedCategory) {
-        query = query.eq("category", selectedCategory);
-      }
+      if (selectedCategory) query = query.eq("category", selectedCategory);
 
       const { data, error } = await query.order("created_at", {
         ascending: false,
       });
 
       if (error) {
-        console.error(error);
         toast.error("Failed to load blog posts.");
         return [];
       }
 
-      return (data as BlogPost[]) || [];
+      return data as BlogPost[];
     },
   });
 
-  // Create post
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
-      toast.error("You must be logged in to post.");
-      return;
-    }
+    if (!user) return toast.error("You must be logged in to post.");
 
     setCreating(true);
 
@@ -110,11 +93,7 @@ const Blogs = () => {
 
     setCreating(false);
 
-    if (error) {
-      console.error(error);
-      toast.error("Failed to create post.");
-      return;
-    }
+    if (error) return toast.error("Failed to create post.");
 
     toast.success("Blog post created!");
     setOpen(false);
@@ -123,19 +102,12 @@ const Blogs = () => {
     queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
   };
 
-  // Category label
-  const getCategoryLabel = (value: BlogCategory) => {
-    return categories.find((c) => c.value === value)?.name || value;
-  };
-
-  // Search filter
   const filteredPosts = posts.filter((p) =>
     (p.title + p.content).toLowerCase().includes(search.toLowerCase())
   );
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">School Blogs</h1>
 
@@ -156,23 +128,18 @@ const Blogs = () => {
               <Input
                 placeholder="Title"
                 value={form.title}
-                onChange={(e) =>
-                  setForm({ ...form, title: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
                 required
               />
 
               <Textarea
                 placeholder="Share your thoughts..."
                 value={form.content}
-                onChange={(e) =>
-                  setForm({ ...form, content: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, content: e.target.value })}
                 rows={6}
                 required
               />
 
-              {/* Category selector */}
               <select
                 className="w-full border rounded-md p-2"
                 value={form.category}
@@ -199,18 +166,15 @@ const Blogs = () => {
         </Dialog>
       </div>
 
-      {/* Search */}
       <Input
         placeholder="Search blog posts..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
 
-      {/* Category filter buttons */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {categories.map((cat) => {
           const Icon = cat.icon;
-
           return (
             <Button
               key={cat.value}
@@ -229,12 +193,10 @@ const Blogs = () => {
         })}
       </div>
 
-      {/* Section title */}
       <h2 className="text-lg font-semibold text-muted-foreground">
         All Posts
       </h2>
 
-      {/* Posts */}
       {isLoading ? (
         <div className="text-center py-20 text-muted-foreground">
           Loading posts...
@@ -242,21 +204,25 @@ const Blogs = () => {
       ) : filteredPosts.length > 0 ? (
         <div className="space-y-4">
           {filteredPosts.map((p) => (
-            <Card key={p.id}>
-              <CardContent className="p-5 space-y-2">
-                <span className="text-xs px-2 py-1 rounded-full bg-muted inline-block">
-                  {getCategoryLabel(p.category)}
-                </span>
+            <Link to={`/blogs/${p.id}`} key={p.id}>
+              <Card className="cursor-pointer hover:bg-accent transition">
+                <CardContent className="p-5 space-y-2">
+                  <span className="text-xs px-2 py-1 rounded-full bg-muted inline-block">
+                    {p.category}
+                  </span>
 
-                <h3 className="text-lg font-semibold">{p.title}</h3>
+                  <h3 className="text-lg font-semibold">{p.title}</h3>
 
-                <p className="text-sm whitespace-pre-wrap">{p.content}</p>
+                  <p className="text-sm whitespace-pre-wrap line-clamp-3">
+                    {p.content}
+                  </p>
 
-                <p className="text-xs text-muted-foreground">
-                  {format(new Date(p.created_at), "MMM d, yyyy")}
-                </p>
-              </CardContent>
-            </Card>
+                  <p className="text-xs text-muted-foreground">
+                    {format(new Date(p.created_at), "MMM d, yyyy")}
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       ) : (
