@@ -24,16 +24,29 @@ const Dashboard = () => {
   });
 
   // Fetch recent blog posts
-  const { data: recentPosts } = useQuery({
+  const { data: recentPosts = [], isLoading: postsLoading, error: postsError } = useQuery({
     queryKey: ["recent-posts"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("posts")
-        .select("id, title, category, created_at, profiles!posts_user_id_fkey(full_name)")
-        .order("created_at", { ascending: false })
-        .limit(5);
-      return data || [];
+      try {
+        // Simple query without joins for reliability
+        const { data, error } = await supabase
+          .from("posts")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(8);
+
+        if (error) {
+          console.error("Error fetching posts:", error);
+          return [];
+        }
+
+        return data || [];
+      } catch (err) {
+        console.error("Query exception:", err);
+        return [];
+      }
     },
+    enabled: !!user,
   });
 
   // Quick links
@@ -75,10 +88,17 @@ const Dashboard = () => {
       {/* All Posts */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">All Posts</CardTitle>
+          <CardTitle className="text-lg">Recent Blog Posts</CardTitle>
         </CardHeader>
         <CardContent>
-          {recentPosts && recentPosts.length > 0 ? (
+          {postsLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
+              <p className="text-sm text-muted-foreground">Loading posts...</p>
+            </div>
+          ) : postsError ? (
+            <p className="text-sm text-red-500">Failed to load posts</p>
+          ) : recentPosts.length > 0 ? (
             <div className="space-y-3">
               {recentPosts.map((post: any) => (
                 <Link
@@ -86,10 +106,10 @@ const Dashboard = () => {
                   to={`/blogs/${post.id}`}
                   className="flex items-start justify-between gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted/70 transition"
                 >
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="font-medium text-sm text-foreground truncate">{post.title}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {post.profiles?.full_name || "Anonymous"} · {format(new Date(post.created_at), "MMM d")}
+                      {format(new Date(post.created_at), "MMM d, yyyy")}
                     </p>
                   </div>
                   <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full whitespace-nowrap capitalize">
@@ -99,7 +119,7 @@ const Dashboard = () => {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">No posts yet. Be the first to share something!</p>
+            <p className="text-sm text-muted-foreground">No blog posts yet. Start sharing!</p>
           )}
         </CardContent>
       </Card>
