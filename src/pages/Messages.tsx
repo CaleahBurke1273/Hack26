@@ -1,251 +1,216 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, MessageSquare, User, Trash2 } from "lucide-react";
+import { Send, MessageSquare, User } from "lucide-react";
 import { format } from "date-fns";
-import { toast } from "sonner";
 
 const Messages = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [selectedConvo, setSelectedConvo] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<any>(null); // user we are chatting with
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  const chatRef = useRef<HTMLDivElement>(null);
+  // Scroll to latest message
+  const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 
-  // Auto-scroll to bottom
-  useEffect(() => {
-    if (chatRef.current) {
-      chatRef.current.scrollTop = chatRef.current.scrollHeight;
-    }
-  }, [selectedConvo]);
-
-  // ============================
-  // FETCH CONVERSATIONS
-  // ============================
-  const { data: conversations = [] } = useQuery({
-    queryKey: ["conversations", user?.id],
+  // Fetch all other users
+  const { data: users } = useQuery({
+    queryKey: ["users"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("conversations")
-        .select(
-          "*, p1:profiles!conversations_participant_1_fkey(full_name, user_id), p2:profiles!conversations_participant_2_fkey(full_name, user_id)"
-        )
-        .or(`participant_1.eq.${user!.id},participant_2.eq.${user!.id}`)
-        .order("last_message_at", { ascending: false });
-
-      if (error) {
-        console.error(error);
-        toast.error("Failed to load conversations");
-        return [];
-      }
-
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .neq("user_id", user?.id);
       return data || [];
     },
     enabled: !!user,
   });
 
-  // ============================
-  // FETCH MESSAGES
-  // ============================
-  const { data: messages = [] } = useQuery({
-    queryKey: ["messages", selectedConvo],
+  // Fetch conversations
+  const { data: conversations } = useQuery({
+    queryKey: ["conversations", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("messages")
+      const { data } = await supabase
+        .from("conversations")
         .select("*")
-        .eq("conversation_id", selectedConvo!)
-        .order("sent_at", { ascending: true });
-
-      if (error) {
-        console.error(error);
-        toast.error("Failed to load messages");
-        return [];
-      }
-
+        .or(`participant_1.eq.${user!.id},participant_2.eq.${user!.id}`)
+        .order("last_message_at", { ascending: false });
       return data || [];
     },
-    enabled: !!selectedConvo,
+    enabled: !!user,
   });
 
-  // ============================
-  // REALTIME SUBSCRIPTION
-  // ============================
-  useEffect(() => {
-    if (!selectedConvo) return;
+  // Fetch messages for selected conversation
+  const { data: messages } = useQuery({
+    queryKey: ["messages", conversationId],
+    queryFn: async () => {
+      if (!conversationId) return [];
+      const { data } = await supabase
+        .from("messages")
+        .select("*")
+        .eq("conversation_id", conversationId)
+        .order("sent_at", { ascending: true });
+      return data || [];
+    },
+    enabled: !!conversationId,
+  });
 
+  // Realtime subscription
+  useEffect(() => {
+    if (!conversationId) return;
     const channel = supabase
-      .channel(`messages-${selectedConvo}`)
+      .channel(`messages-${conversationId}`)
       .on(
         "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "messages",
-          filter: `conversation_id=eq.${selectedConvo}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["messages", selectedConvo] });
-        }
+        { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${conversationId}` },
+        () => queryClient.invalidateQueries({ queryKey: ["messages", conversationId] })
       )
       .subscribe();
-
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [selectedConvo, queryClient]);
+  }, [conversationId, queryClient]);
 
-  // ============================
-  // SEND MESSAGE
-  // ============================
+  // Scroll when messages update
+  useEffect(scrollToBottom, [messages]);
+
+  // Open or create a conversation with selected user
+  const openConversation = async (u: any) => {
+    setSelectedUser(u);
+    const convo = conversations?.find(
+      (c: any) =>
+        (c.participant_1 === user!.id && c.participant_2 === u.user_id) ||
+        (c.participant_2 === user!.id && c.participant_1 === u.user_id)
+    );
+    if (convo) {
+      setConversationId(convo.id);
+    } else {
+      // Create new conversation
+      const { data: newConvo } = await supabase
+        .from("conversations")
+        .insert({
+          participant_1: user!.id,
+          participant_2: u.user_id,
+          last_message_at: new Date().toISOString(),
+        })
+        .select("*")
+        .single();
+      setConversationId(newConvo.id);
+      queryClient.invalidateQueries({ queryKey: ["conversations", user?.id] });
+    }
+  };
+
+  // Send a message
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !user || !selectedConvo) return;
-
+    if (!newMessage.trim() || !conversationId) return;
     setSending(true);
-
-    const { error } = await supabase.from("messages").insert({
-      conversation_id: selectedConvo,
-      sender_id: user.id,
+    await supabase.from("messages").insert({
+      conversation_id: conversationId,
+      sender_id: user!.id,
       text: newMessage.trim(),
+      sent_at: new Date().toISOString(),
     });
-
-    if (error) {
-      console.error(error);
-      toast.error("Failed to send message");
-      setSending(false);
-      return;
-    }
-
-    // Update conversation timestamp
     await supabase
       .from("conversations")
       .update({ last_message_at: new Date().toISOString() })
-      .eq("id", selectedConvo);
-
+      .eq("id", conversationId);
     setNewMessage("");
     setSending(false);
   };
 
-  // ============================
-  // DELETE MESSAGE
-  // ============================
-  const deleteMessage = async (id: string) => {
-    const { error } = await supabase.from("messages").delete().eq("id", id);
-
-    if (error) {
-      console.error(error);
-      toast.error("Failed to delete message");
-      return;
-    }
-
-    toast.success("Message deleted");
-    queryClient.invalidateQueries({ queryKey: ["messages", selectedConvo] });
-  };
-
-  const getOtherName = (convo: any) => {
-    if (convo.p1?.user_id === user?.id) return convo.p2?.full_name || "Student";
-    return convo.p1?.full_name || "Student";
-  };
-
-  // ============================
-  // RENDER
-  // ============================
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 h-[80vh]">
       <h1 className="text-2xl font-bold text-foreground">Messages</h1>
-
-      <div className="grid md:grid-cols-3 gap-4" style={{ minHeight: "60vh" }}>
-        {/* Conversation list */}
-        <div className="space-y-2 md:border-r md:pr-4">
-          {conversations.length > 0 ? (
-            conversations.map((c: any) => (
-              <button
-                key={c.id}
-                onClick={() => setSelectedConvo(c.id)}
-                className={`w-full text-left p-3 rounded-lg transition-colors ${
-                  selectedConvo === c.id ? "bg-primary/10" : "hover:bg-muted"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
-                    <User className="h-4 w-4 text-primary" />
+      <div className="grid md:grid-cols-3 gap-4 h-full">
+        {/* Left panel: user list */}
+        <div className="space-y-2 md:border-r md:pr-4 overflow-y-auto">
+          {users && users.length > 0 ? (
+            users
+              .sort((a, b) => {
+                const convoA = conversations?.find(
+                  (c: any) => c.participant_1 === a.user_id || c.participant_2 === a.user_id
+                );
+                const convoB = conversations?.find(
+                  (c: any) => c.participant_1 === b.user_id || c.participant_2 === b.user_id
+                );
+                const dateA = convoA?.last_message_at ? new Date(convoA.last_message_at).getTime() : 0;
+                const dateB = convoB?.last_message_at ? new Date(convoB.last_message_at).getTime() : 0;
+                return dateB - dateA;
+              })
+              .map((u: any) => (
+                <button
+                  key={u.user_id}
+                  onClick={() => openConversation(u)}
+                  className={`w-full text-left p-3 rounded-lg transition-colors ${
+                    selectedUser?.user_id === u.user_id ? "bg-primary/10" : "hover:bg-muted"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+                      <User className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-foreground truncate">{u.full_name}</p>
+                      {(() => {
+                        const convo = conversations?.find(
+                          (c: any) => c.participant_1 === u.user_id || c.participant_2 === u.user_id
+                        );
+                        return convo?.last_message_at ? (
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(convo.last_message_at), "MMM d, h:mm a")}
+                          </p>
+                        ) : null;
+                      })()}
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {getOtherName(c)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(c.last_message_at), "MMM d, h:mm a")}
-                    </p>
-                  </div>
-                </div>
-              </button>
-            ))
+                </button>
+              ))
           ) : (
             <div className="text-center py-10">
               <MessageSquare className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">No conversations yet.</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Search for students and start chatting!
-              </p>
+              <p className="text-sm text-muted-foreground">No users found.</p>
             </div>
           )}
         </div>
 
-        {/* Chat view */}
-        <div className="md:col-span-2 flex flex-col">
-          {selectedConvo ? (
+        {/* Right panel: chat */}
+        <div className="md:col-span-2 flex flex-col h-full">
+          {conversationId ? (
             <>
-              <div
-                ref={chatRef}
-                className="flex-1 overflow-y-auto space-y-2 mb-4 max-h-[50vh]"
-              >
-                {messages.map((m: any) => (
+              <div className="flex-1 overflow-y-auto space-y-2 p-2">
+                {messages?.map((m: any) => (
                   <div
                     key={m.id}
-                    className={`flex ${
-                      m.sender_id === user?.id ? "justify-end" : "justify-start"
-                    }`}
+                    className={`flex ${m.sender_id === user!.id ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`relative max-w-[70%] px-3 py-2 rounded-xl text-sm ${
-                        m.sender_id === user?.id
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted text-foreground"
+                      className={`max-w-[70%] px-3 py-2 rounded-xl text-sm ${
+                        m.sender_id === user!.id ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
                       }`}
                     >
                       <p>{m.text}</p>
                       <p
                         className={`text-[10px] mt-1 ${
-                          m.sender_id === user?.id
-                            ? "text-primary-foreground/70"
-                            : "text-muted-foreground"
+                          m.sender_id === user!.id ? "text-primary-foreground/70" : "text-muted-foreground"
                         }`}
                       >
                         {format(new Date(m.sent_at), "h:mm a")}
                       </p>
-
-                      {/* Delete button */}
-                      {m.sender_id === user?.id && (
-                        <button
-                          onClick={() => deleteMessage(m.id)}
-                          className="absolute -right-6 top-1 text-muted-foreground hover:text-red-500"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      )}
                     </div>
                   </div>
                 ))}
+                <div ref={messagesEndRef} />
               </div>
 
-              <form onSubmit={sendMessage} className="flex gap-2">
+              {/* Chat input at bottom */}
+              <form onSubmit={sendMessage} className="flex gap-2 p-4 border-t bg-background mt-auto">
                 <Input
                   placeholder="Type a message..."
                   value={newMessage}
@@ -258,7 +223,7 @@ const Messages = () => {
             </>
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-              Select a conversation to start chatting
+              Select a user to start chatting
             </div>
           )}
         </div>
