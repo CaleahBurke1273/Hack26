@@ -1,4 +1,4 @@
-# SU - Wilfrid Laurier Student Platform
+# SU Golden Talks - Wilfrid Laurier Student Platform
 
 A comprehensive student community platform for Wilfrid Laurier University students to connect, share, sell, and discover everything happening on campus.
 
@@ -79,14 +79,19 @@ src/
 ```
 
 ##  Getting Started
+The URL below will take you to the fully deployed project.
+
+Deployed Project URL: 
+
+
+** IF RUNNING PURELY OFF OWN MACHINE, FOLLOW STEPS BELOW TO RUN OFF LOCALHOST
 
 ### Prerequisites
 - Node.js 16+
 - npm or bun package manager
 
 ### Installation
-- Ensure you are in directory Hack26-Main/Hack26-Main/Downloads/Hack26-Jayden-Dev-TWO
-  before executing the following commands.
+- Ensure you are in directory "Hack26-Main/Hack26-Main/Downloads/Hack26-Jayden-Dev-TWO" before executing the following commands.
 
 1. Install dependencies:
 ```bash
@@ -102,7 +107,7 @@ The application will be available at `http://localhost:8080/`
 
 ##  Environment Setup
 
-Create a `.env` file with the following variables:
+If not already present, create a `.env` file with the following variables:
 ```
 VITE_SUPABASE_PROJECT_ID="quwgpfkkmeysbguwwsea"
 VITE_SUPABASE_URL="https://quwgpfkkmeysbguwwsea.supabase.co"
