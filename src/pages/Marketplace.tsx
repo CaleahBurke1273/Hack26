@@ -33,16 +33,15 @@ const Marketplace = () => {
   const [creating, setCreating] = useState(false);
 
   // ============================
-  // FETCH LISTINGS (with search)
+  // FETCH LISTINGS + PROFILES
   // ============================
   const { data: listings = [], isLoading } = useQuery({
     queryKey: ["marketplace", search],
     queryFn: async () => {
+      // 1. Fetch listings
       let query = supabase
         .from("marketplace_listings")
-        .select(
-          "*, profiles!marketplace_listings_seller_id_fkey(full_name)"
-        )
+        .select("*")
         .eq("status", "active")
         .order("created_at", { ascending: false });
 
@@ -50,15 +49,36 @@ const Marketplace = () => {
         query = query.ilike("title", `%${search}%`);
       }
 
-      const { data, error } = await query;
+      const { data: listingsData, error: listingsError } = await query;
 
-      if (error) {
-        console.error(error);
+      if (listingsError) {
+        console.error("Marketplace fetch error:", listingsError);
         toast.error("Failed to load listings.");
         return [];
       }
 
-      return data || [];
+      if (!listingsData || listingsData.length === 0) return [];
+
+      // 2. Fetch seller profiles
+      const sellerIds = listingsData.map((l) => l.seller_id);
+
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("profiles")
+        .select("user_id, full_name")
+        .in("user_id", sellerIds);
+
+      if (profilesError) {
+        console.error("Profile fetch error:", profilesError);
+        return listingsData.map((l) => ({ ...l, seller: null }));
+      }
+
+      // 3. Merge listings + profiles
+      const merged = listingsData.map((l) => ({
+        ...l,
+        seller: profilesData.find((p) => p.user_id === l.seller_id) || null,
+      }));
+
+      return merged;
     },
   });
 
@@ -217,7 +237,7 @@ const Marketplace = () => {
                 </p>
 
                 <p className="text-xs text-muted-foreground">
-                  {l.profiles?.full_name} ·{" "}
+                  {l.seller?.full_name || "Unknown Seller"} ·{" "}
                   {format(new Date(l.created_at), "MMM d")}
                 </p>
               </CardContent>
