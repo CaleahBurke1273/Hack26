@@ -2,10 +2,12 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+
 import {
   Dialog,
   DialogContent,
@@ -13,35 +15,62 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, BookOpen } from "lucide-react";
+
+import {
+  Plus,
+  BookOpen,
+  Dumbbell,
+  FlaskConical,
+  Palette,
+  Briefcase,
+  Cpu,
+  Leaf,
+} from "lucide-react";
+
 import { toast } from "sonner";
 import { format } from "date-fns";
+
+// ✅ CATEGORY CONFIG (clean + consistent)
+const categories = [
+  { name: "Sports", value: "sports", icon: Dumbbell },
+  { name: "Science", value: "science", icon: FlaskConical },
+  { name: "Arts", value: "arts", icon: Palette },
+  { name: "Business", value: "business", icon: Briefcase },
+  { name: "Tech", value: "tech", icon: Cpu },
+  { name: "Lifestyle", value: "lifestyle", icon: Leaf },
+];
 
 const Blogs = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ title: "", content: "" });
   const [creating, setCreating] = useState(false);
 
-  // ============================
-  // FETCH BLOG POSTS
-  // ============================
-  const {
-    data: posts = [],
-    isLoading,
-  } = useQuery({
-    queryKey: ["blog-posts"],
+  const [form, setForm] = useState({
+    title: "",
+    content: "",
+    category: "lifestyle", // ✅ default safe value
+  });
+
+  const [search, setSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // ✅ Fetch posts (category-aware)
+  const { data: posts = [] } = useQuery({
+    queryKey: ["blog-posts", selectedCategory],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("posts")
-        .select("*")
-        .eq("category", "blog")
-        .order("created_at", { ascending: false });
+      let query = supabase.from("posts").select("*");
+
+      if (selectedCategory) {
+        query = query.eq("category", selectedCategory);
+      }
+
+      const { data, error } = await query.order("created_at", {
+        ascending: false,
+      });
 
       if (error) {
-        console.error("Fetch blog posts error:", error);
         toast.error("Failed to load blog posts.");
         return [];
       }
@@ -50,57 +79,55 @@ const Blogs = () => {
     },
   });
 
-  // ============================
-  // CREATE BLOG POST
-  // ============================
+  // ✅ Create post
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!user) {
-      toast.error("You must be logged in to create a post.");
-      return;
-    }
+    if (!user) return;
 
     setCreating(true);
 
-    const { data, error } = await supabase
-      .from("posts")
-      .insert({
-        user_id: user.id,
-        title: form.title,
-        content: form.content,
-        category: "blog",
-      })
-      .select();
+    const { error } = await supabase.from("posts").insert({
+      user_id: user.id,
+      title: form.title,
+      content: form.content,
+      category: form.category,
+    });
 
     setCreating(false);
 
     if (error) {
-      console.error("Create post error:", error);
       toast.error("Failed to create post.");
       return;
     }
 
     toast.success("Blog post created!");
     setOpen(false);
-    setForm({ title: "", content: "" });
+    setForm({ title: "", content: "", category: "lifestyle" });
 
-    // Refresh posts
     queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
   };
 
-  // ============================
-  // RENDER
-  // ============================
+  // ✅ Convert DB value → nice label
+  const getCategoryLabel = (value: string) => {
+    return categories.find((c) => c.value === value)?.name || value;
+  };
+
+  // 🔍 Search filter
+  const filteredPosts = posts.filter((p: any) =>
+    (p.title + p.content)
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">School Blogs</h1>
+        <h1 className="text-2xl font-bold">School Blogs</h1>
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button disabled={!user}>
+            <Button>
               <Plus className="h-4 w-4 mr-1" />
               New Post
             </Button>
@@ -131,6 +158,21 @@ const Blogs = () => {
                 required
               />
 
+              {/* ✅ Category selector */}
+              <select
+                className="w-full border rounded-md p-2"
+                value={form.category}
+                onChange={(e) =>
+                  setForm({ ...form, category: e.target.value })
+                }
+              >
+                {categories.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+
               <Button type="submit" className="w-full" disabled={creating}>
                 {creating ? "Posting..." : "Publish"}
               </Button>
@@ -139,24 +181,59 @@ const Blogs = () => {
         </Dialog>
       </div>
 
-      {/* Loading State */}
-      {isLoading && (
-        <div className="text-center py-20 text-muted-foreground">
-          Loading posts...
-        </div>
-      )}
+      {/* 🔍 Search */}
+      <Input
+        placeholder="Search blog posts..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+
+      {/* 🧭 Categories */}
+      <div className="grid grid-cols-3 gap-3">
+        {categories.map((cat) => {
+          const Icon = cat.icon;
+
+          return (
+            <Button
+              key={cat.value}
+              variant={
+                selectedCategory === cat.value ? "default" : "outline"
+              }
+              onClick={() =>
+                setSelectedCategory(
+                  selectedCategory === cat.value ? null : cat.value
+                )
+              }
+              className="flex items-center gap-2"
+            >
+              <Icon className="h-4 w-4" />
+              {cat.name}
+            </Button>
+          );
+        })}
+      </div>
+
+      {/* 🧾 Section Title */}
+      <h2 className="text-lg font-semibold text-muted-foreground">
+        All Posts
+      </h2>
 
       {/* Posts */}
-      {!isLoading && posts.length > 0 ? (
+      {filteredPosts.length > 0 ? (
         <div className="space-y-4">
-          {posts.map((p: any) => (
+          {filteredPosts.map((p: any) => (
             <Card key={p.id}>
               <CardContent className="p-5 space-y-2">
-                <h3 className="text-lg font-semibold text-foreground">
+                {/* 🏷️ Tag */}
+                <span className="text-xs px-2 py-1 rounded-full bg-muted inline-block">
+                  {getCategoryLabel(p.category)}
+                </span>
+
+                <h3 className="text-lg font-semibold">
                   {p.title}
                 </h3>
 
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                <p className="text-sm whitespace-pre-wrap">
                   {p.content}
                 </p>
 
@@ -168,14 +245,12 @@ const Blogs = () => {
           ))}
         </div>
       ) : (
-        !isLoading && (
-          <div className="text-center py-20">
-            <BookOpen className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">
-              No blog posts yet. Share your first campus story!
-            </p>
-          </div>
-        )
+        <div className="text-center py-20">
+          <BookOpen className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
+          <p className="text-muted-foreground">
+            No matching posts found.
+          </p>
+        </div>
       )}
     </div>
   );
