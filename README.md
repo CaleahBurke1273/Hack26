@@ -85,6 +85,8 @@ src/
 - npm or bun package manager
 
 ### Installation
+- Ensure you are in directory Hack26-Main/Hack26-Main/Downloads/Hack26-Jayden-Dev-TWO
+  before executing the following commands.
 
 1. Install dependencies:
 ```bash
