@@ -102,9 +102,9 @@ The application will be available at `http://localhost:8080/`
 
 Create a `.env` file with the following variables:
 ```
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
-VITE_SUPABASE_PROJECT_ID=your_project_id
+VITE_SUPABASE_PROJECT_ID="quwgpfkkmeysbguwwsea"
+VITE_SUPABASE_URL="https://quwgpfkkmeysbguwwsea.supabase.co"
+VITE_SUPABASE_PUBLISHABLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1d2dwZmtrbWV5c2JndXd3c2VhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MDAwNTEsImV4cCI6MjA5MDM3NjA1MX0.imAQ8YmX3qA9RZVrPiuWs_oV252b7OtqdeCHFB-uHLo"
 ```
 
 ##  Available Scripts
